@@ -1,0 +1,81 @@
+# Python environments and caches
+.venv/
+venv/
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+dist/
+
+# R environments and caches
+.Rhistory
+.RData
+.Rproj.user/
+renv/library/
+renv/staging/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.local
+Makevars.local
+credentials*
+secrets*
+
+# Restricted or derived data
+/data/
+/rawdata/
+/raw_data/
+/00_frozen_inputs/
+*.csv
+*.tsv
+*.parquet
+*.feather
+*.arrow
+*.h5
+*.hdf5
+*.sas7bdat
+*.dta
+*.rds
+*.RDS
+*.pkl
+*.pickle
+*.joblib
+
+# Generated analyses and model artifacts
+outputs/
+output/
+results/
+figures/
+logs/
+02_revision_outputs/
+03_logs/
+*.model
+*.ubj
+*.onnx
+*.ckpt
+*.pt
+*.pth
+
+# Office documents and local previews
+*.xlsx
+*.xls
+*.docx
+*.pptx
+*.pdf
+*.tiff
+*.tif
+
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*~
