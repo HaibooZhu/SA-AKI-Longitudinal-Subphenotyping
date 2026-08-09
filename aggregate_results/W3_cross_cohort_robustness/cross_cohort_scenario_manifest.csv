@@ -1,0 +1,16 @@
+cohort,scenario,patients,rows,retained_patient_fraction,minimum_rows_per_patient,median_rows_per_patient,maximum_rows_per_patient,description
+MIMIC-IV,zscore_scaling,4713,85021,1.0,5,16.0,30,Patient-independent global zscore scaling of each renal feature.
+MIMIC-IV,robust_scaling,4713,85021,1.0,5,16.0,30,Patient-independent global robust scaling of each renal feature.
+MIMIC-IV,exclude_documented_rrt,4545,80830,0.9643539147040102,5,16.0,30,Excluded 168 patients with documented RRT; retained 154 patients without an explicit RRT-source row as unknown.
+MIMIC-IV,complete_30_window_followup,1159,34770,0.24591555272650117,30,30.0,30,Restricted to patients containing every one of the 30 planned windows.
+MIMIC-IV,limited_forward_fill_complete_rows,4705,83341,0.9983025673668576,3,16.0,30,Used the pre-multiple-imputation forward-fill archive and retained only rows complete for all cohort-specific renal features.
+eICU-CRD,zscore_scaling,1417,29246,1.0,6,21.0,30,Patient-independent global zscore scaling of each renal feature.
+eICU-CRD,robust_scaling,1417,29246,1.0,6,21.0,30,Patient-independent global robust scaling of each renal feature.
+eICU-CRD,exclude_documented_rrt,1379,28241,0.9731827805222301,6,21.0,30,Excluded 38 patients with documented RRT; retained 790 patients without an explicit RRT-source row as unknown.
+eICU-CRD,complete_30_window_followup,386,11580,0.27240649258997884,30,30.0,30,Restricted to patients containing every one of the 30 planned windows.
+eICU-CRD,limited_forward_fill_complete_rows,1412,28833,0.9964714184897672,2,21.0,30,Used the pre-multiple-imputation forward-fill archive and retained only rows complete for all cohort-specific renal features.
+AUMC,zscore_scaling,2183,48517,1.0,5,29.0,30,Patient-independent global zscore scaling of each renal feature.
+AUMC,robust_scaling,2183,48517,1.0,5,29.0,30,Patient-independent global robust scaling of each renal feature.
+AUMC,exclude_documented_rrt,1923,41895,0.8808978469995419,5,28.0,30,Excluded 260 patients with documented RRT; retained 66 patients without an explicit RRT-source row as unknown.
+AUMC,complete_30_window_followup,543,16290,0.24874026568941823,30,30.0,30,Restricted to patients containing every one of the 30 planned windows.
+AUMC,limited_forward_fill_complete_rows,2181,47596,0.9990838295923041,2,28.0,30,Used the pre-multiple-imputation forward-fill archive and retained only rows complete for all cohort-specific renal features.

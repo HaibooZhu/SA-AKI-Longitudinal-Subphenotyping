@@ -37,23 +37,29 @@ MATCHING_SPECS = [
 
 
 def parse_args() -> argparse.Namespace:
+    repo = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data-dir",
         type=Path,
-        required=True,
-        help="Authorized local directory containing the archived fluid-resuscitation inputs.",
+        default=(
+            repo
+            / "00_frozen_inputs/data_snapshot/remote_project_snapshot/06.fluid_resuscitation"
+        ),
     )
     parser.add_argument(
         "--frozen-code-root",
         type=Path,
-        required=True,
-        help="Read-only local snapshot of the historical fluid-resuscitation code.",
+        default=(
+            repo
+            / "00_frozen_inputs/code_snapshot/SA-AKI_Longitudinal_Subphenotype"
+            / "publication_code/06.fluid_resuscitation"
+        ),
     )
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=Path("results/revision/W6_diuretic_exploratory"),
+        default=repo / "02_revision_outputs/reports/W6_diuretic_exploratory",
     )
     return parser.parse_args()
 

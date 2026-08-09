@@ -1,0 +1,30 @@
+{
+  "python": "3.9.18 | packaged by conda-forge | (main, Dec 23 2023, 16:33:10) \n[GCC 12.3.0]",
+  "platform": "Linux-6.8.0-136-generic-x86_64-with-glibc2.35",
+  "versions": {
+    "autogluon.tabular": "0.7.0",
+    "scikit-learn": "1.2.2",
+    "xgboost": "1.7.4"
+  },
+  "expected_versions": {
+    "autogluon.tabular": "0.7.0",
+    "scikit-learn": "1.2.2",
+    "xgboost": "1.7.4"
+  },
+  "environment_match": true,
+  "seed": 20260805,
+  "bootstrap_replicates": 1000,
+  "simple_features": [
+    "creatinine_min",
+    "creatinine_max",
+    "crea_divide_basecrea_min",
+    "crea_divide_basecrea_max",
+    "urineoutput_min",
+    "urineoutput_mean"
+  ],
+  "input_sha256": {
+    "train_set.csv": "5648c93184ea4ad7a5eab26d9427f4d2f8778f7aed59a8f580056646c6d11e3d",
+    "test_set1.csv": "7caf24162bab42aee50603ce04eb6371a78c998229e614065caa1788dd31cbb3",
+    "test_set2.csv": "83ba6a9dee024dbb44674dede6e1945cea61c8dcf1f99d0dd7f58827e7df4392"
+  }
+}

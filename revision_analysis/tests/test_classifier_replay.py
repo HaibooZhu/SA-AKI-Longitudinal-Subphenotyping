@@ -52,3 +52,22 @@ def test_simple_comparator_is_prespecified_and_small():
         "urineoutput_min",
         "urineoutput_mean",
     ]
+
+
+def test_pairwise_output_contains_exactly_three_undirected_pairs():
+    y = np.array([1, 1, 2, 2, 3, 3])
+    prob = np.array(
+        [
+            [0.8, 0.1, 0.1],
+            [0.7, 0.2, 0.1],
+            [0.1, 0.8, 0.1],
+            [0.2, 0.7, 0.1],
+            [0.1, 0.1, 0.8],
+            [0.1, 0.2, 0.7],
+        ]
+    )
+    pred = np.argmax(prob, axis=1) + 1
+    pairwise = MODULE.aggregate_evaluation(
+        "model", "cohort", y, pred, prob
+    )[-1]
+    assert pairwise.comparison.tolist() == ["DR vs RR", "DR vs PW", "RR vs PW"]

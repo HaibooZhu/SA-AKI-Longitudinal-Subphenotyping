@@ -28,6 +28,17 @@
     ],
     "seeds": [20260805, 20260806, 20260807]
   },
+  "fresh_refit": {
+    "candidate_k": [2, 3, 4, 5],
+    "chains": 1,
+    "burn": 50,
+    "keep": 100,
+    "thin": 2,
+    "info": 50,
+    "seeds": [20260805, 20260806, 20260807],
+    "scope": "Uniform multi-seed screening grid for fresh K comparisons and Editor Concern #2 robustness refits",
+    "limitation": "These are screening-depth single-chain fits repeated across three deterministic seeds; R-hat is not estimable and the deeper archived eICU fits remain the primary K-selection provenance evidence."
+  },
   "posterior_assignment": {
     "probability_scaling": "none",
     "primary_label": "component_with_largest_posterior_median",

@@ -29,6 +29,38 @@ COHORT_FILES = {
     "eicu": ("03.eICU_SAKI_trajCluster", "df_mixAK_fea4_C3_eicu.csv"),
     "aumc": ("02.AUMCdb_SAKI_trajCluster", "df_mixAK_fea3_C3_aumc.csv"),
 }
+COVARIATE_SOURCES = {
+    "mimic": {
+        "demographics": "00.data_mimic/feature_data/df_mimic_basicinfo.csv",
+        "baseline": "00.data_mimic/disease_definition/AKI/df_base_crea.csv",
+        "stage": "00.data_mimic/disease_definition/AKI/sk_first_and_max_stage.csv",
+        "rrt": "00.data_mimic/treatment/lifesupport.csv",
+        "baseline_id": "stay_id",
+        "baseline_column": "baseline_Scr",
+        "baseline_multiplier": 1.0,
+        "rrt_missing_means_zero": False,
+    },
+    "eicu": {
+        "demographics": "00.data_eicu/feature_data/df_eicu_basicinfo.csv",
+        "baseline": "00.data_eicu/disease_definition/AKI/df_base_crea.csv",
+        "stage": "00.data_eicu/disease_definition/AKI/eicu_sk_first_and_max_stage.csv",
+        "rrt": "00.data_eicu/treatment/eicu_lifesupport.csv",
+        "baseline_id": "stay_id",
+        "baseline_column": "baseline_creatinine",
+        "baseline_multiplier": 1.0,
+        "rrt_missing_means_zero": True,
+    },
+    "aumc": {
+        "demographics": "00.data_aumc/feature_data/df_aumc_basicinfo.csv",
+        "baseline": "00.data_aumc/disease_definition/AKI/baseline_creatinine.csv",
+        "stage": "00.data_aumc/disease_definition/AKI/aumc_first_and_max_stage.csv",
+        "rrt": "00.data_aumc/treatment/aumcdb_lifesupport.csv",
+        "baseline_id": "admissionid",
+        "baseline_column": "baseline_creatinine",
+        "baseline_multiplier": 0.01131,
+        "rrt_missing_means_zero": False,
+    },
+}
 SOFA_COMPONENTS = (
     "respiration_sofa",
     "coagulation_sofa",
@@ -73,17 +105,17 @@ POPULATION_LABEL = {
 
 
 def parse_args() -> argparse.Namespace:
+    repo = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--snapshot-root",
         type=Path,
-        required=True,
-        help="Authorized local project snapshot; it is read but never modified.",
+        default=repo / "00_frozen_inputs/data_snapshot/remote_project_snapshot",
     )
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=Path("results/revision/W5_independent_outcomes"),
+        default=repo / "02_revision_outputs/reports/W5_independent_outcomes",
     )
     parser.add_argument("--bootstrap", type=int, default=300)
     return parser.parse_args()
@@ -93,6 +125,131 @@ def mismatch_count(left: pd.Series, right: pd.Series) -> int:
     """Count disagreements only where both values are observed."""
     comparable = left.notna() & right.notna()
     return int((left.loc[comparable] != right.loc[comparable]).sum())
+
+
+def collapse_unique_source(
+    frame: pd.DataFrame, columns: list[str], source_name: str
+) -> pd.DataFrame:
+    """Collapse exact duplicate source rows and reject conflicting patient values."""
+    selected = frame[columns].dropna(subset=["stay_id"]).copy()
+    for column in columns[1:]:
+        conflicts = selected.groupby("stay_id")[column].nunique(dropna=True).gt(1)
+        if conflicts.any():
+            raise ValueError(
+                f"{source_name}: conflicting {column} values for "
+                f"{int(conflicts.sum())} patients"
+            )
+    return selected.drop_duplicates("stay_id", keep="first")
+
+
+def load_upstream_covariates(
+    snapshot_root: Path,
+    cohort: str,
+    authoritative_ids: pd.Series,
+    legacy_risk: pd.DataFrame,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Rebuild model covariates from their frozen upstream files.
+
+    The legacy risk-factor exports are compared for audit only. Their values are
+    never selected for the revision models.
+    """
+    spec = COVARIATE_SOURCES[cohort]
+    demographics_path = snapshot_root / spec["demographics"]
+    baseline_path = snapshot_root / spec["baseline"]
+    stage_path = snapshot_root / spec["stage"]
+    rrt_path = snapshot_root / spec["rrt"]
+
+    demographics = collapse_unique_source(
+        pd.read_csv(demographics_path),
+        ["stay_id", "gender", "age"],
+        spec["demographics"],
+    )
+    baseline_raw = pd.read_csv(baseline_path).rename(
+        columns={spec["baseline_id"]: "stay_id"}
+    )
+    baseline = collapse_unique_source(
+        baseline_raw,
+        ["stay_id", spec["baseline_column"]],
+        spec["baseline"],
+    ).rename(columns={spec["baseline_column"]: "baseline_Scr"})
+    baseline["baseline_Scr"] = (
+        pd.to_numeric(baseline["baseline_Scr"], errors="coerce")
+        * float(spec["baseline_multiplier"])
+    )
+    stage = collapse_unique_source(
+        pd.read_csv(stage_path),
+        ["stay_id", "first_aki_stage"],
+        spec["stage"],
+    )
+    rrt = collapse_unique_source(
+        pd.read_csv(rrt_path),
+        ["stay_id", "is_rrt"],
+        spec["rrt"],
+    )
+
+    covariates = pd.DataFrame({"stay_id": authoritative_ids}).drop_duplicates()
+    for source in [demographics, baseline, stage, rrt]:
+        covariates = covariates.merge(
+            source, on="stay_id", how="left", validate="one_to_one"
+        )
+    if spec["rrt_missing_means_zero"]:
+        # This reproduces the explicit eICU notebook rule after the left join.
+        covariates["is_rrt"] = covariates["is_rrt"].fillna(0)
+
+    legacy = legacy_risk[
+        ["stay_id", "gender", "age", "baseline_Scr", "first_aki_stage", "is_rrt"]
+    ].copy()
+    audit = covariates.merge(
+        legacy,
+        on="stay_id",
+        how="left",
+        suffixes=("_upstream", "_legacy"),
+        validate="one_to_one",
+    )
+    source_by_variable = {
+        "gender": spec["demographics"],
+        "age": spec["demographics"],
+        "baseline_Scr": spec["baseline"],
+        "first_aki_stage": spec["stage"],
+        "is_rrt": spec["rrt"],
+    }
+    verification_rows = []
+    for variable, source_path in source_by_variable.items():
+        upstream = audit[f"{variable}_upstream"]
+        legacy_values = audit[f"{variable}_legacy"]
+        comparable = upstream.notna() & legacy_values.notna()
+        if variable == "gender":
+            mismatch = int(
+                upstream.loc[comparable]
+                .astype(str)
+                .ne(legacy_values.loc[comparable].astype(str))
+                .sum()
+            )
+        else:
+            left = pd.to_numeric(upstream.loc[comparable], errors="coerce")
+            right = pd.to_numeric(legacy_values.loc[comparable], errors="coerce")
+            mismatch = int(
+                (~np.isclose(left, right, rtol=1e-8, atol=1e-8, equal_nan=True)).sum()
+            )
+        verification_rows.append(
+            {
+                "cohort": COHORT_LABEL[cohort],
+                "covariate": variable,
+                "upstream_source": source_path,
+                "authoritative_n": len(covariates),
+                "upstream_nonmissing_n": int(upstream.notna().sum()),
+                "legacy_nonmissing_n": int(legacy_values.notna().sum()),
+                "comparable_n": int(comparable.sum()),
+                "legacy_vs_upstream_mismatch_n": mismatch,
+                "revision_value_source": "frozen upstream file",
+                "missing_value_rule": (
+                    "left-join absence explicitly set to 0 in archived eICU notebook"
+                    if variable == "is_rrt" and spec["rrt_missing_means_zero"]
+                    else "preserved as missing"
+                ),
+            }
+        )
+    return covariates, pd.DataFrame(verification_rows)
 
 
 def load_authoritative(snapshot_root: Path, cohort: str) -> pd.DataFrame:
@@ -157,7 +314,9 @@ def load_trajectory_summary(snapshot_root: Path, cohort: str) -> pd.DataFrame:
     return summary
 
 
-def load_cohort(snapshot_root: Path, cohort: str) -> tuple[pd.DataFrame, dict]:
+def load_cohort(
+    snapshot_root: Path, cohort: str
+) -> tuple[pd.DataFrame, dict, pd.DataFrame]:
     risk_dir = (
         snapshot_root
         / "04.other_feature_in_three_dataset/08.subphenotype_association_analysis"
@@ -200,16 +359,11 @@ def load_cohort(snapshot_root: Path, cohort: str) -> tuple[pd.DataFrame, dict]:
         ),
     }
 
-    covariates = [
-        "stay_id",
-        "gender",
-        "age",
-        "baseline_Scr",
-        "first_aki_stage",
-        "is_rrt",
-    ]
+    covariates, covariate_verification = load_upstream_covariates(
+        snapshot_root, cohort, authoritative["stay_id"], risk
+    )
     frame = authoritative.merge(
-        risk[covariates], on="stay_id", how="left", validate="one_to_one"
+        covariates, on="stay_id", how="left", validate="one_to_one"
     )
     sofa = load_onset_nonrenal_sofa(snapshot_root, cohort)
     trajectory = load_trajectory_summary(snapshot_root, cohort)
@@ -232,7 +386,7 @@ def load_cohort(snapshot_root: Path, cohort: str) -> tuple[pd.DataFrame, dict]:
     frame["landmark_full_trajectory"] = (
         frame.landmark_day7_survivor & frame.observed_through_time28
     )
-    return frame, lineage
+    return frame, lineage, covariate_verification
 
 
 def select_population(frame: pd.DataFrame, population: str) -> pd.DataFrame:
@@ -498,6 +652,7 @@ def plot_forest(effects: pd.DataFrame, out_dir: Path) -> None:
 def write_report(
     out_dir: Path,
     lineage: pd.DataFrame,
+    covariate_verification: pd.DataFrame,
     populations: pd.DataFrame,
     unadjusted: pd.DataFrame,
     effects: pd.DataFrame,
@@ -581,9 +736,16 @@ alongside it, and neither replaces the full-cohort mortality analysis.
 ## Authoritative cohort and lineage checks
 
 Phenotype, 28-day mortality, and 7-day mortality were overwritten from each cohort's
-frozen `sk_survival.csv`. The risk-factor exports supplied covariates only.
+frozen `sk_survival.csv`. Age, sex, baseline serum creatinine, first AKI stage,
+and RRT were rebuilt directly from their frozen upstream source files. The legacy
+risk-factor exports were used only as comparison targets and did not supply model
+values.
 
 {md(lineage)}
+
+Aggregate upstream-versus-legacy covariate verification:
+
+{md(covariate_verification)}
 
 The 1,748-row legacy eICU risk-factor export is not an analysis population. It contains
 331 patients outside the authoritative 1,417-patient cohort; its legacy phenotype and
@@ -681,6 +843,7 @@ def main() -> None:
     args = parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
     lineage_rows = []
+    covariate_verification_parts = []
     population_parts = []
     unadjusted_parts = []
     effect_parts = []
@@ -688,8 +851,9 @@ def main() -> None:
     missing_parts = []
 
     for cohort in ["mimic", "eicu", "aumc"]:
-        frame, lineage = load_cohort(args.snapshot_root, cohort)
+        frame, lineage, covariate_verification = load_cohort(args.snapshot_root, cohort)
         lineage_rows.append(lineage)
+        covariate_verification_parts.append(covariate_verification)
         population_parts.append(population_table(cohort, frame))
 
         unadjusted_parts.append(unadjusted_table(cohort, frame, "mortality_28d", "overall"))
@@ -763,6 +927,9 @@ def main() -> None:
             )
 
     lineage = pd.DataFrame(lineage_rows)
+    covariate_verification = pd.concat(
+        covariate_verification_parts, ignore_index=True
+    )
     populations = pd.concat(population_parts, ignore_index=True)
     unadjusted = pd.concat(unadjusted_parts, ignore_index=True)
     effects = pd.concat(effect_parts, ignore_index=True)
@@ -770,6 +937,9 @@ def main() -> None:
     missingness = pd.DataFrame(missing_parts)
 
     lineage.to_csv(args.out_dir / "outcome_source_lineage.csv", index=False)
+    covariate_verification.to_csv(
+        args.out_dir / "covariate_source_verification.csv", index=False
+    )
     populations.to_csv(args.out_dir / "outcome_populations.csv", index=False)
     unadjusted.to_csv(args.out_dir / "outcome_unadjusted_rates.csv", index=False)
     effects.to_csv(args.out_dir / "outcome_adjusted_effects.csv", index=False)
@@ -779,6 +949,7 @@ def main() -> None:
     write_report(
         args.out_dir,
         lineage,
+        covariate_verification,
         populations,
         unadjusted,
         effects,

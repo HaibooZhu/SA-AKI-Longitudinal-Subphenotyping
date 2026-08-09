@@ -1,100 +1,46 @@
-# Revision analysis workstreams
+# Revision Analysis Workstreams
 
-This directory contains the code added during the JTIM major revision. It is deliberately separated from the baseline package so that the submitted workflow and the reviewer-requested analyses remain traceable.
+_Version-controlled code and documentation for all analyses added during the JTIM major revision._
 
-## Safety boundary
+---
 
-- No patient-level input, generated result, fitted model, or workbook is stored here.
-- Every analysis input must be supplied as a command-line path.
-- Outputs default to `results/revision/` or must be supplied explicitly.
-- Run the scripts only with data held under the corresponding database authorization and data-use agreement.
+## 📋 Workstream map
 
-## Workstream map
-
-| Directory | Purpose | Main output |
+| Directory | Purpose | Primary review mapping |
 | --- | --- | --- |
-| `00_data_lineage/` | Resolve the authoritative eICU cohort and audit historical derived-file lineage | aggregate lineage status and hashes |
-| `00_config/` | Store the canonical mixAK sensitivity configuration | machine-readable model settings |
-| `01_data_audit/` | Extract workbook cells and audit Supplementary Table S3 against source and generated tables | discrepancy tables and audit report |
-| `02_missingness_sensitivity/` | Audit cohort inputs, construct the planned 30-window grid, and build documented-window/high-coverage scenarios | audit summaries and local scenario inputs |
-| `03_cluster_robustness/` | Re-audit archived eICU k=2–5, refit the three-component model, and compare aligned assignments | aggregate diagnostics, agreement metrics, and trajectory plots |
-| `04_independent_outcomes/` | Fit adjusted mortality and RRT association models with onset nonrenal SOFA | effect tables and forest plot |
-| `05_diuretic_exploratory/` | Audit archived matching and run a restricted landmark analysis | balance, descriptive, and interaction summaries |
-| `06_classifier_validation/` | Replay the archived AutoGluon model, compare it with six-variable logistic regression, and run fixed-XGBoost sensitivity | balanced metrics, paired bootstrap intervals, and calibration plots |
-| `07_tables_figures/` | Apply harmonization rules and regenerate longitudinal tables | tidy data dictionary and Tables S3–S5 |
-| `08_literature_update/` | Re-run and archive predefined PubMed searches | JSON, CSV, and protocol record |
+| `00_data_lineage/` | Authoritative cohort manifest, artifact hashes and cross-file lineage checks | E.1, R1-M3 |
+| `00_config/` | Paths, environment, seeds and shared definitions | All comments |
+| `01_data_audit/` | Table S3 and end-to-end data-integrity audit | E.1, R1-M3 |
+| `02_missingness_sensitivity/` | Urine output, baseline SCr, RRT and preprocessing sensitivity | E.2, R1-M4, R1-m1 |
+| `03_cluster_robustness/` | Cluster selection, stability and assignment uncertainty | E.2, R1-m4 |
+| `04_independent_outcomes/` | Adjusted outcomes independent of cluster-defining features | E.3 |
+| `05_diuretic_exploratory/` | Reframed post-exposure association analyses | E.4, R1-M1 |
+| `06_classifier_validation/` | Balanced performance, calibration and leakage checks | E.5, R1-M2 |
+| `07_tables_figures/` | Scripted regeneration of revision tables and figures | All analytical comments |
+| `08_literature_update/` | Reproducible PubMed search and literature-screening records | R1-m2 |
 
-## Typical execution order
+## ✍️ File conventions
 
-```mermaid
-flowchart TB
-    accTitle: Revision Analysis Execution Order
-    accDescr: The data audit and missingness scenarios precede clustering sensitivity, while outcome, diuretic, classifier, and literature workstreams can run independently before final table regeneration
+- Prefix scripts with the mapped comment ID when practical, for example `E1_R1M3_audit_table_s3.py`
+- Store configuration rather than absolute paths inside analysis scripts
+- Send generated outputs to `../02_revision_outputs`
+- Send execution logs to `../03_logs`
+- Record input snapshot, configuration, seed, output path and verification status
 
-    audit[🔍 Audit source tables] --> regenerate[📊 Regenerate tables]
-    missingness[🧪 Build urine scenarios] --> refit[🧠 Refit mixAK model]
-    refit --> compare[✅ Compare assignments]
-    outcomes[⚙️ Model outcomes] --> synthesis([📝 Revision synthesis])
-    diuretic[⚙️ Audit diuretics] --> synthesis
-    classifier[⚙️ Revalidate classifier] --> synthesis
-    literature[🔍 Update literature] --> synthesis
-    regenerate --> synthesis
-    compare --> synthesis
+## Editor Concern #2 implementation
 
-    classDef process_style fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a5f
-    classDef output_style fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+The current revision-only robustness path is intentionally separate from frozen code:
 
-    class audit,regenerate,missingness,refit,compare,outcomes,diuretic,classifier,literature process_style
-    class synthesis output_style
-```
+1. `build_eicu_uo_scenarios.py` reconstructs both sum and mean from raw eICU urine-output records and stops unless one rule passes prespecified match, MAE, median-error, and dominance thresholds.
+2. `build_cross_cohort_scenarios.py` generates z-score, median/IQR, documented-RRT exclusion, complete 30-window follow-up, and limited-forward-fill/complete-row inputs for all three cohorts.
+3. `run_mixak_refit.R` uses a dynamic cohort-specific response list, native 0–1 posterior probabilities, and one random-intercept flag per response.
+4. `summarize_fresh_k_grid.py` requires the complete 3-cohort × K=2–5 × 3-seed grid before reporting a result.
+5. `summarize_robustness_refits.py` aligns numeric labels before calculating agreement, ARI, NMI, cluster prevalence, and posterior uncertainty.
 
-## Example commands
+Patient-level refit inputs and assignments are written only under
+`02_revision_outputs/intermediate/`, which is ignored by Git. Aggregate diagnostics
+and reports are eligible for the public evidence bundle after a privacy-column audit.
 
-The following examples show interfaces, not distributable input locations.
-
-```bash
-# 1. Extract values from the supplementary workbooks.
-python revision_analysis/01_data_audit/extract_workbook_json.py \
-  --output-dir results/revision/workbook_json \
-  /authorized/path/Workbook1.xlsx \
-  /authorized/path/Workbook2.xlsx \
-  /authorized/path/Workbook3.xlsx
-
-# 2. Audit Table S3 from source matrix through workbook rendering.
-python revision_analysis/01_data_audit/audit_table_s3.py \
-  --source-matrix /authorized/path/df_saki_timeseries_feature_all.csv \
-  --generated-dir /authorized/path/generated_tables \
-  --workbook-json-dir results/revision/workbook_json \
-  --output-dir results/revision/table_s3_audit
-
-# 3. Build urine-output sensitivity scenarios.
-python revision_analysis/02_missingness_sensitivity/build_eicu_uo_scenarios.py \
-  --events /authorized/path/eicu_urine_events.csv \
-  --onsets /authorized/path/eicu_saki_onsets.csv \
-  --cluster-input /authorized/path/eicu_cluster_input.csv \
-  --output-dir results/revision/urine_scenarios
-
-# 4. Refit and evaluate one clustering scenario.
-Rscript revision_analysis/03_cluster_robustness/run_mixak_k3_sensitivity.R \
-  results/revision/urine_scenarios/eicu_documented_windows.csv \
-  results/revision/cluster_robustness documented_windows 20260805
-
-python revision_analysis/03_cluster_robustness/evaluate_cluster_sensitivity.py \
-  --scenario documented_windows \
-  --scenario-input results/revision/urine_scenarios/eicu_documented_windows.csv \
-  --original-data /authorized/path/df_mixAK_fea4_C3_eicu.csv \
-  --result-dir results/revision/cluster_robustness
-```
-
-The remaining scripts expose their full input contract through `--help`. Detailed expected file layouts are recorded in [`docs/INPUT_DATA_CONTRACT.md`](../docs/INPUT_DATA_CONTRACT.md).
-
-## Interpretation guardrails
-
-- Posterior membership probabilities are already on the 0–1 scale and must not be divided by two.
-- A patient is marked uncertain when the 95% HPD lower bound for the assigned component does not exceed 0.5.
-- High urine-output coverage is defined against all 30 planned trajectory windows; using only available rows inflates eligibility when follow-up ends early.
-- Mixture-component numbers are arbitrary; align labels before calculating agreement, ARI, or NMI.
-- The adjusted outcome models estimate associations, not causal effects.
-- The diuretic workstream is exploratory because treatment indication and post-exposure classification can introduce bias.
-- The classifier workstream evaluates retrospective discrimination and calibration, not clinical readiness.
-- The public repository excludes patient-level assignments, predictions, landmark cohorts, and restricted fitted objects.
+`07_tables_figures/publish_aggregate_evidence.py` publishes only an explicit whitelist
+of identifier-free reports, tables, and figures. The publisher stops if any required
+file is missing or if a CSV/JSON contains a prohibited patient identifier field.

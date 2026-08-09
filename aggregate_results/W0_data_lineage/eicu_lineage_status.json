@@ -1,0 +1,18 @@
+{
+  "overall_status": "ACTION_REQUIRED",
+  "authoritative_patient_count": 1417,
+  "failed_required_artifacts": [],
+  "quarantined_legacy_artifacts": [
+    "eicu_legacy_survival_time_summary",
+    "eicu_legacy_risk_factor_union",
+    "eicu_legacy_classifier_feature_source"
+  ],
+  "classifier_membership_diagnostics": {
+    "ambiguous_feature_ids": 0,
+    "unknown_internal_split_ids": 0,
+    "eicu_internal_split_patients": 1417
+  },
+  "classifier_membership_failure_reasons": [],
+  "privacy": "No patient-level identifiers are written by this audit.",
+  "next_action": "Re-derive outcome and risk-factor analyses from the authoritative cohort; do not use quarantined 1,970/1,748-patient snapshots."
+}

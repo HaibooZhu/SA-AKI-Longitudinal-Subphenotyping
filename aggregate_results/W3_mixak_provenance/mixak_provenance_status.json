@@ -1,0 +1,18 @@
+{
+  "overall_status": "PASS_WITH_REQUIRED_TABLE_CORRECTION",
+  "traceable_candidate_k": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "untraceable_table_s1_k": [
+    6,
+    7,
+    8
+  ],
+  "k_6_to_8_executable_hits": 0,
+  "historical_probability_division_by_2_hits": 22,
+  "revision_probability_scaling": "none",
+  "required_action": "Regenerate Table S1 and Figure S2 using only traceable K=2-5. Do not alter the frozen historical/public code; the corrected probability path is revision-only."
+}

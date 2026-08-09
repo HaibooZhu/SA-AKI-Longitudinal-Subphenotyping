@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import argparse
 import csv
 import json
 import time
@@ -13,6 +12,10 @@ import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
 
+
+ROOT = Path(__file__).resolve().parents[2]
+OUT = ROOT / "02_revision_outputs" / "reports" / "W7_literature_update"
+OUT.mkdir(parents=True, exist_ok=True)
 
 SEARCH_DATE = date.today()
 QUERIES = {
@@ -144,20 +147,7 @@ KEY_SCREENING = {
 }
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--out-dir",
-        type=Path,
-        default=Path("results/revision/W7_literature_update"),
-    )
-    return parser.parse_args()
-
-
 def main() -> None:
-    args = parse_args()
-    output_dir = args.out_dir.resolve()
-    output_dir.mkdir(parents=True, exist_ok=True)
     archive: dict[str, object] = {
         "search_date": SEARCH_DATE.isoformat(),
         "database": "PubMed via NCBI E-utilities",
@@ -201,9 +191,9 @@ def main() -> None:
 
     ordered = sorted(combined.values(), key=lambda x: (x["year"], x["pmid"]), reverse=True)
     archive["unique_records_retrieved"] = len(ordered)
-    with (output_dir / "pubmed_search_archive.json").open("w", encoding="utf-8") as handle:
+    with (OUT / "pubmed_search_archive.json").open("w", encoding="utf-8") as handle:
         json.dump(archive, handle, ensure_ascii=False, indent=2)
-    with (output_dir / "pubmed_search_records.csv").open("w", encoding="utf-8", newline="") as handle:
+    with (OUT / "pubmed_search_records.csv").open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(
             handle,
             fieldnames=list(ordered[0]) if ordered else ["pmid"],
@@ -229,7 +219,7 @@ def main() -> None:
                 "pubmed_url": record["pubmed_url"] if record else f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
             }
         )
-    with (output_dir / "key_literature_screening.csv").open("w", encoding="utf-8", newline="") as handle:
+    with (OUT / "key_literature_screening.csv").open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(screening_rows[0]), lineterminator="\n")
         writer.writeheader()
         writer.writerows(screening_rows)
@@ -261,9 +251,7 @@ def main() -> None:
         "",
         "Key inclusion/exclusion decisions are recorded in `key_literature_screening.csv`.",
     ])
-    (output_dir / "W7_LITERATURE_SEARCH_PROTOCOL.md").write_text(
-        "\n".join(lines) + "\n", encoding="utf-8"
-    )
+    (OUT / "W7_LITERATURE_SEARCH_PROTOCOL.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

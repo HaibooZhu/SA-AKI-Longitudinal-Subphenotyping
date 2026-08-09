@@ -6,7 +6,7 @@
 
 Reproducible analysis code for trajectory-defined subphenotypes of sepsis-associated acute kidney injury (SA-AKI) across MIMIC-IV, eICU-CRD, and AmsterdamUMCdb.
 
-This repository combines the curated analysis package used for the submitted study with the additional data-audit and sensitivity-analysis code developed during peer-review revision. It contains **code only**: no patient-level data, fitted patient assignments, model artifacts, or manuscript results are included.
+This repository preserves the historical public pipeline and adds the independent data-audit and sensitivity-analysis code developed during peer-review revision. It contains code plus a whitelisted bundle of **aggregate, identifier-free revision evidence**; no patient-level data, fitted patient assignments, or restricted model artifacts are included. The historical `src/`, `scripts/`, and `configs/` tree is retained for provenance and is **not the authoritative executable basis for revision claims**; use `revision_analysis/` for the corrected revision workflows.
 
 ## Associated manuscript
 
@@ -34,7 +34,7 @@ flowchart LR
     accDescr: Restricted ICU data are transformed into local harmonized inputs, analyzed by the baseline pipeline and revision workstreams, then checked before tables and figures are generated
 
     restricted[(🔒 Restricted ICU data)] --> harmonize[⚙️ Build local inputs]
-    harmonize --> baseline[🧠 Run baseline pipeline]
+    harmonize --> baseline[📦 Inspect legacy baseline archive]
     harmonize --> audit[🔍 Audit data integrity]
     harmonize --> sensitivity[🧪 Run sensitivity analyses]
     baseline --> verify{✅ Checks pass?}
@@ -57,17 +57,18 @@ flowchart LR
 
 ```text
 .
-├── src/sa_aki_pipeline/      # Reusable baseline analysis package
-├── scripts/                  # Baseline command-line entry points
-├── configs/                  # Configuration templates
+├── src/sa_aki_pipeline/      # Frozen legacy public package; provenance only
+├── scripts/                  # Historical entry points; non-authoritative
+├── configs/                  # Historical templates; not a methods contract
 ├── tests/                    # Unit tests for reusable components
 ├── revision_analysis/        # Data audit and revision-stage analyses
+├── aggregate_results/        # Whitelisted identifier-free revision evidence
 ├── docs/                     # Public input contracts and provenance notes
 ├── pyproject.toml
 └── requirements.txt
 ```
 
-The baseline package was consolidated from the earlier public development repository, [shen-lab-icu/SAKI-Longitudinal-Subphenotyping](https://github.com/shen-lab-icu/SAKI-Longitudinal-Subphenotyping). This repository preserves that provenance while adding the independently organized revision analyses.
+The legacy package was consolidated from the earlier public development repository, [shen-lab-icu/SAKI-Longitudinal-Subphenotyping](https://github.com/shen-lab-icu/SAKI-Longitudinal-Subphenotyping). It is intentionally left unchanged so its provenance remains inspectable. Known limitations and the corresponding revision replacements are listed in [Legacy baseline limitations](docs/LEGACY_BASELINE_LIMITATIONS.md).
 
 ## Quick start
 
@@ -95,16 +96,20 @@ python -m pip install -e ".[revision,dev]"
 PYTHONPATH=src pytest -q
 ```
 
-### Inspect available commands
+### Inspect the authoritative revision commands
 
 ```bash
-python scripts/generate_time_windows.py --help
+python revision_analysis/02_missingness_sensitivity/build_corrected_time_grid.py --help
 python revision_analysis/07_tables_figures/regenerate_supplementary_tables.py --help
 ```
 
 All public revision scripts that consume study data require the caller to supply those input paths explicitly. Generated files default to `results/`, which is ignored by Git. See [the revision workstream guide](revision_analysis/README.md) and [the input-data contract](docs/INPUT_DATA_CONTRACT.md) before running them.
 
-## Baseline analysis entry points
+The published [aggregate revision evidence](aggregate_results/README.md) includes audit status files, summary tables, and the cross-cohort robustness figure. Its manifest records the exact public file set; patient-level inputs and assignments are deliberately excluded.
+
+## Historical baseline entry points
+
+> **Provenance warning:** The commands below are retained to document the earlier public implementation. They contain known issues and must not be used to regenerate revision results. They are not being silently rewritten because the project keeps original code frozen; corrected logic lives under `revision_analysis/`.
 
 | Script | Purpose |
 | --- | --- |
@@ -117,7 +122,7 @@ All public revision scripts that consume study data require the caller to supply
 | `train_model.py` | Train the retrospective phenotype classifier |
 | `compute_shap.py` | Calculate SHAP-based model explanations |
 
-The YAML files in `configs/` are templates. Copy one to a local, ignored configuration file and replace example paths with authorized local inputs.
+The YAML files in `configs/` are historical templates, not the authoritative specification of the revised methods. In particular, they must not be used to infer the verified eICU urine-output aggregation rule. See the revision audit and [Legacy baseline limitations](docs/LEGACY_BASELINE_LIMITATIONS.md).
 
 ## Revision analyses
 
@@ -152,6 +157,8 @@ Do not commit credential files, local path configuration, patient identifiers, d
 - Numeric mixture labels are aligned to archived phenotypes before agreement statistics are calculated.
 - Data-audit outputs distinguish source-data discrepancies from workbook-rendering discrepancies.
 - Patient-level assignments and prediction files are intentionally excluded from version control; public outputs must remain aggregate-only.
+- Archived classifier replay requires the frozen legacy environment in [`environment.archived-autogluon.yml`](environment.archived-autogluon.yml), not the current package defaults.
+- Data-free unit tests run automatically in GitHub Actions; full clinical analyses require authorized local data and therefore are not executed in public CI.
 
 ## License
 

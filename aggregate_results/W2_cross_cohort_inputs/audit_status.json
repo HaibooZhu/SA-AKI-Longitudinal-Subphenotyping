@@ -1,0 +1,14 @@
+{
+  "overall_status": "PASS_WITH_DISCLOSED_STRUCTURAL_HETEROGENEITY",
+  "passed": true,
+  "failure_reasons": [],
+  "thresholds": {
+    "patient_time_duplicates": 0,
+    "baseline_linkage_fraction": 1.0,
+    "ratio_exact_after_rounding_fraction_minimum": 0.999,
+    "ratio_absolute_error_maximum": 0.01
+  },
+  "cross_cohort_difference": "AUMC lacks BUN and uses three renal variables",
+  "baseline_alternative_available": false,
+  "patient_level_output_written": false
+}

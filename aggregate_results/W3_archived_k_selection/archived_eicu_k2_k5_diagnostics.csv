@@ -1,0 +1,5 @@
+"K","patients","retained_draws","mean_deviance","high_absolute_lag1_fraction","uncertain_patients","uncertain_fraction","median_max_posterior_probability","probability_scale","scaled_deviance","scaled_lag1_failure","historical_selection_score","rank_by_historical_score","selected"
+2,1417,2000,556131.072389531,0,44,0.0310515172900494,0.999217124647248,"native 0-1 (no division)",0.00416990925606862,0,0.00416990925606862,2,FALSE
+3,1417,2000,555519.60720223,0,206,0.145377558221595,0.964328934766193,"native 0-1 (no division)",0,0,0,1,TRUE
+4,1417,500,702017.734568796,0.65625,58,0.0409315455187015,0.999660701590925,"native 0-1 (no division)",0.999049348989032,1,1.41354151043236,4,FALSE
+5,1417,500,702157.135683493,0.5,134,0.0945659844742414,0.982223461333238,"native 0-1 (no division)",1,0.761904761904762,1.25717893166134,3,FALSE

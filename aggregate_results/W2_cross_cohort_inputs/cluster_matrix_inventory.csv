@@ -1,0 +1,4 @@
+cohort,matrix_sha256,rows,patients,time_min,time_max,unique_time_values,patient_time_duplicates,minimum_rows_per_patient,median_rows_per_patient,maximum_rows_per_patient,renal_feature_count,renal_features,BUN_in_executable_matrix
+MIMIC-IV,aca43c03eda33ae09354f474a10ecbfd3084351cfb60497b484793fb6ef4314c,85021,4713,-2.0,28.0,30,0,5,16.0,30,4,bun;creatinine;urineoutput;crea_divide_basecrea,True
+eICU-CRD,a79251d11608c48c8c02aaadfe0c16c4a54dbf6ca5efaebd5efa34b550bface4,29246,1417,-2.0,28.0,30,0,6,21.0,30,4,bun;creatinine;urineoutput;crea_divide_basecrea,True
+AUMC,7bbc9080a59cda324ed14cd7126871a7c165b34fc0660bc4bd3dcb7508af96af,48517,2183,-2.0,28.0,30,0,5,29.0,30,3,creatinine;urineoutput;crea_divide_basecrea,False

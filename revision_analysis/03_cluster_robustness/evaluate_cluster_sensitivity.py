@@ -25,19 +25,23 @@ FEATURE_LABEL = {
 
 
 def parse_args() -> argparse.Namespace:
+    repo = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
     parser.add_argument("--scenario", required=True)
     parser.add_argument("--scenario-input", type=Path, required=True)
     parser.add_argument(
         "--original-data",
         type=Path,
-        required=True,
-        help="Authorized local archived eICU clustering matrix.",
+        default=(
+            repo
+            / "00_frozen_inputs/data_snapshot/remote_project_snapshot"
+            / "03.eICU_SAKI_trajCluster/df_mixAK_fea4_C3_eicu.csv"
+        ),
     )
     parser.add_argument(
         "--result-dir",
         type=Path,
-        default=Path("results/revision/W3_cluster_robustness"),
+        default=repo / "02_revision_outputs/reports/W3_cluster_robustness",
     )
     return parser.parse_args()
 

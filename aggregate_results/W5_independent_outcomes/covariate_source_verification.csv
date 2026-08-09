@@ -1,0 +1,16 @@
+cohort,covariate,upstream_source,authoritative_n,upstream_nonmissing_n,legacy_nonmissing_n,comparable_n,legacy_vs_upstream_mismatch_n,revision_value_source,missing_value_rule
+MIMIC-IV,gender,00.data_mimic/feature_data/df_mimic_basicinfo.csv,4713,4713,4713,4713,0,frozen upstream file,preserved as missing
+MIMIC-IV,age,00.data_mimic/feature_data/df_mimic_basicinfo.csv,4713,4713,4713,4713,0,frozen upstream file,preserved as missing
+MIMIC-IV,baseline_Scr,00.data_mimic/disease_definition/AKI/df_base_crea.csv,4713,4713,4713,4713,0,frozen upstream file,preserved as missing
+MIMIC-IV,first_aki_stage,00.data_mimic/disease_definition/AKI/sk_first_and_max_stage.csv,4713,4713,4713,4713,0,frozen upstream file,preserved as missing
+MIMIC-IV,is_rrt,00.data_mimic/treatment/lifesupport.csv,4713,4559,4559,4559,0,frozen upstream file,preserved as missing
+eICU-CRD,gender,00.data_eicu/feature_data/df_eicu_basicinfo.csv,1417,1417,1417,1417,0,frozen upstream file,preserved as missing
+eICU-CRD,age,00.data_eicu/feature_data/df_eicu_basicinfo.csv,1417,1417,1417,1417,0,frozen upstream file,preserved as missing
+eICU-CRD,baseline_Scr,00.data_eicu/disease_definition/AKI/df_base_crea.csv,1417,1417,1417,1417,0,frozen upstream file,preserved as missing
+eICU-CRD,first_aki_stage,00.data_eicu/disease_definition/AKI/eicu_sk_first_and_max_stage.csv,1417,1417,1417,1417,19,frozen upstream file,preserved as missing
+eICU-CRD,is_rrt,00.data_eicu/treatment/eicu_lifesupport.csv,1417,1417,1417,1417,0,frozen upstream file,left-join absence explicitly set to 0 in archived eICU notebook
+AUMC,gender,00.data_aumc/feature_data/df_aumc_basicinfo.csv,2183,2134,2134,2134,0,frozen upstream file,preserved as missing
+AUMC,age,00.data_aumc/feature_data/df_aumc_basicinfo.csv,2183,2183,2183,2183,0,frozen upstream file,preserved as missing
+AUMC,baseline_Scr,00.data_aumc/disease_definition/AKI/baseline_creatinine.csv,2183,2183,2183,2183,0,frozen upstream file,preserved as missing
+AUMC,first_aki_stage,00.data_aumc/disease_definition/AKI/aumc_first_and_max_stage.csv,2183,2183,2183,2183,34,frozen upstream file,preserved as missing
+AUMC,is_rrt,00.data_aumc/treatment/aumcdb_lifesupport.csv,2183,2117,2117,2117,0,frozen upstream file,preserved as missing
