@@ -53,6 +53,16 @@ COHORTS = {
 
 EMBEDDED_TO_SOURCE_GROUP = {"RR": "C2", "DR": "C1", "PW": "C3"}
 
+EXPECTED_EMBEDDED_MISMATCH_KEYS = frozenset(
+    ("mimic", feature, "C2", 7)
+    for feature in [
+        "Glucose", "Heart Rate", "Hematocrit", "Hemoglobin", "Inr", "Lactate",
+        "MBP", "PT", "PTT", "Pco2", "Platelets", "Po2", "Potassium",
+        "Respiratory Rate", "SBP", "Scr/bScr", "Sodium", "Spo2", "Temperature",
+        "Urine Output", "WBC", "pH",
+    ]
+)
+
 
 @dataclass(frozen=True)
 class Paths:
@@ -60,6 +70,13 @@ class Paths:
     generated_dir: Path
     workbook_json_dir: Path
     output_dir: Path
+
+
+@dataclass(frozen=True)
+class AuditDecision:
+    status: str
+    exit_code: int
+    conclusion: str
 
 
 def parse_args() -> Paths:
@@ -199,6 +216,65 @@ def detect_cross_cohort_unit_flags(generated: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame.from_records(flags).sort_values("max_to_min_median_ratio", ascending=False)
 
 
+def decide_audit(
+    embedded_comparison: pd.DataFrame,
+    source_comparison: pd.DataFrame,
+) -> AuditDecision:
+    """Classify the audit from observed comparisons; never infer a pass from prose."""
+    source_mismatches = source_comparison.loc[~source_comparison["match"]]
+    if not source_mismatches.empty:
+        return AuditDecision(
+            status="FAIL",
+            exit_code=1,
+            conclusion=(
+                f"Source-to-generated validation failed for {len(source_mismatches)} cells. "
+                "A reporting-only conclusion is not permitted."
+            ),
+        )
+
+    embedded_mismatches = embedded_comparison.loc[~embedded_comparison["match"]]
+    if embedded_mismatches.empty:
+        return AuditDecision(
+            status="PASS",
+            exit_code=0,
+            conclusion=(
+                "Source-to-generated and generated-to-embedded comparisons both passed "
+                "after four-decimal rounding."
+            ),
+        )
+
+    observed_keys = frozenset(
+        (
+            str(row.cohort),
+            str(row.feature),
+            str(row.source_group),
+            int(row.day),
+        )
+        for row in embedded_mismatches.itertuples(index=False)
+    )
+    if observed_keys == EXPECTED_EMBEDDED_MISMATCH_KEYS:
+        return AuditDecision(
+            status="PASS_WITH_EXPECTED_RENDERING_ERROR",
+            exit_code=0,
+            conclusion=(
+                "Source-to-generated validation passed. The embedded workbook contains exactly "
+                "the 22 prespecified MIMIC/RR/day-7 rendering mismatches and no others. "
+                "This audit localizes that specific defect to the source-matrix-to-workbook "
+                "reporting path; broader analytical provenance is evaluated separately."
+            ),
+        )
+
+    return AuditDecision(
+        status="REVIEW_REQUIRED",
+        exit_code=2,
+        conclusion=(
+            f"Source-to-generated validation passed, but {len(embedded_mismatches)} embedded "
+            "mismatches do not equal the prespecified 22-cell rendering defect. Manual review "
+            "is required before using a reporting-only conclusion."
+        ),
+    )
+
+
 def write_report(
     paths: Paths,
     embedded_comparison: pd.DataFrame,
@@ -206,6 +282,7 @@ def write_report(
     sequences: pd.DataFrame,
     unit_flags: pd.DataFrame,
     missingness: pd.DataFrame,
+    decision: AuditDecision,
 ) -> None:
     mismatches = embedded_comparison[~embedded_comparison["match"]]
     source_mismatches = source_comparison[~source_comparison["match"]]
@@ -217,10 +294,9 @@ def write_report(
         "",
         "## Conclusion",
         "",
-        "The source-to-generated-CSV calculations reproduce exactly after four-decimal rounding. "
-        "The only embedded-table corruption is in MIMIC/RR/day 7: 22 cells from Glucose through pH. "
-        "Together with the preceding correct FiO2 value 46.7739, the cells form a +1 autofill series, "
-        "which localizes the error to manual spreadsheet assembly rather than source data or clustering.",
+        f"**Audit status: `{decision.status}`**",
+        "",
+        decision.conclusion,
         "",
         "## Layer-by-layer checks",
         "",
@@ -287,7 +363,7 @@ def write_report(
     (paths.output_dir / "W1_DATA_INTEGRITY_AUDIT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def main() -> None:
+def main() -> int:
     paths = parse_args()
     paths.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -332,20 +408,43 @@ def main() -> None:
 
     sequences = detect_fill_series(embedded)
     unit_flags = detect_cross_cohort_unit_flags(generated)
+    decision = decide_audit(embedded_comparison, source_comparison)
 
     embedded_comparison.to_csv(paths.output_dir / "table_s3_embedded_vs_generated.csv", index=False)
     source_comparison.to_csv(paths.output_dir / "table_s3_source_vs_generated.csv", index=False)
     sequences.to_csv(paths.output_dir / "table_s3_fill_series.csv", index=False)
     unit_flags.to_csv(paths.output_dir / "table_s3_unit_flags.csv", index=False)
     missingness.to_csv(paths.output_dir / "table_s3_missingness.csv", index=False)
-    write_report(paths, embedded_comparison, source_comparison, sequences, unit_flags, missingness)
+    status_payload = {
+        "status": decision.status,
+        "exit_code": decision.exit_code,
+        "source_mismatches": int((~source_comparison["match"]).sum()),
+        "embedded_mismatches": int((~embedded_comparison["match"]).sum()),
+        "fill_series_findings": int(len(sequences)),
+        "unit_flags": int(len(unit_flags)),
+    }
+    (paths.output_dir / "audit_status.json").write_text(
+        json.dumps(status_payload, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    write_report(
+        paths,
+        embedded_comparison,
+        source_comparison,
+        sequences,
+        unit_flags,
+        missingness,
+        decision,
+    )
 
+    print(f"Audit status: {decision.status}")
     print(f"Embedded mismatches: {(~embedded_comparison['match']).sum()}")
     print(f"Source mismatches: {(~source_comparison['match']).sum()}")
     print(f"Fill-series findings: {len(sequences)}")
     print(f"Unit flags: {len(unit_flags)}")
     print(paths.output_dir / "W1_DATA_INTEGRITY_AUDIT.md")
+    return decision.exit_code
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

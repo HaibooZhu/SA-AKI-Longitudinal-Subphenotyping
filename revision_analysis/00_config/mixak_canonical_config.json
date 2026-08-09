@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "historical_reproduction": {
+    "candidate_k": [2, 3, 4, 5],
+    "chains": 1,
+    "burn": 50,
+    "thin": 50,
+    "keep_by_k": {
+      "2": 2000,
+      "3": 2000,
+      "4": 500,
+      "5": 500
+    },
+    "provenance_note": "Only K=2-5 are present in the frozen executable notebooks. K=6-8 are not traceable and must not appear in regenerated Table S1."
+  },
+  "revision_sensitivity": {
+    "k": 3,
+    "chains": 1,
+    "burn": 50,
+    "keep": 2000,
+    "thin": 50,
+    "info": 50,
+    "features": [
+      "bun",
+      "creatinine",
+      "urineoutput",
+      "crea_divide_basecrea"
+    ],
+    "seeds": [20260805, 20260806, 20260807]
+  },
+  "posterior_assignment": {
+    "probability_scaling": "none",
+    "primary_label": "component_with_largest_posterior_median",
+    "uncertain_label": 4,
+    "uncertainty_rule": "95% HPD lower bound for the selected component must exceed 0.5",
+    "hpd_probability": 0.95,
+    "hpd_lower_threshold": 0.5
+  },
+  "diagnostics": {
+    "lag": 1,
+    "absolute_autocorrelation_threshold": 0.85,
+    "maximum_fraction_above_threshold": 0.0,
+    "single_chain_limitation": "R-hat is not estimable for the archived one-chain reproduction. Multi-seed revision experiments are reported separately."
+  }
+}

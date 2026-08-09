@@ -14,7 +14,7 @@ from datetime import date
 from pathlib import Path
 
 
-SEARCH_DATE = date(2026, 8, 5)
+SEARCH_DATE = date.today()
 QUERIES = {
     "sa_aki_trajectory_subphenotype": (
         '("sepsis-associated acute kidney injury"[Title/Abstract] OR '
@@ -32,6 +32,14 @@ QUERIES = {
         'intensive care[Title/Abstract]) AND '
         '("2023/01/01"[Date - Publication] : "3000"[Date - Publication])'
     ),
+    "adqi_28_sa_aki_subphenotype": (
+        '("sepsis-associated acute kidney injury"[Title/Abstract] OR '
+        '(sepsis[Title/Abstract] AND "acute kidney injury"[Title/Abstract])) AND '
+        '(subphenotype*[Title/Abstract] OR phenotype*[Title/Abstract] OR '
+        'trajectory[Title/Abstract] OR trajectories[Title/Abstract]) AND '
+        '(ADQI[Title/Abstract] OR "Acute Disease Quality Initiative"[Title/Abstract] OR '
+        '"ADQI 28"[Title/Abstract])'
+    ),
     "furosemide_stress_or_response_aki": (
         '("acute kidney injury"[Title/Abstract]) AND '
         '("furosemide stress test"[Title/Abstract] OR '
@@ -39,17 +47,6 @@ QUERIES = {
         '"diuretic responsiveness"[Title/Abstract])'
     ),
 }
-
-
-def parse_args() -> argparse.Namespace:
-    repo = Path(__file__).resolve().parents[2]
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=repo / "results/revision/literature_update",
-    )
-    return parser.parse_args()
 
 
 def fetch_json(endpoint: str, params: dict[str, str]) -> dict:
@@ -102,6 +99,9 @@ def parse_article(article: ET.Element) -> dict[str, str]:
             break
     pub_types = "; ".join(text_or_empty(x) for x in art.findall("PublicationTypeList/PublicationType"))
     language = "; ".join(text_or_empty(x) for x in art.findall("Language"))
+    abstract = " ".join(
+        text_or_empty(x) for x in art.findall("Abstract/AbstractText")
+    ).strip()
     return {
         "pmid": pmid,
         "year": year,
@@ -111,13 +111,52 @@ def parse_article(article: ET.Element) -> dict[str, str]:
         "doi": doi,
         "publication_types": pub_types,
         "language": language,
+        "abstract": abstract,
         "pubmed_url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/" if pmid else "",
     }
 
 
+KEY_SCREENING = {
+    "38445412": (
+        "include_context",
+        "Adult prospective multicenter SA-AKI subphenotyping using kidney variables and cell-cycle arrest biomarkers; establishes prior three-subphenotype work.",
+    ),
+    "38730421": (
+        "include_core",
+        "Adult MIMIC-IV/eICU sepsis AKI study using latent-class early creatinine trajectories; directly overlaps trajectory-based positioning.",
+    ),
+    "39990101": (
+        "include_context",
+        "Adult sepsis AKI-to-AKD trajectory study; relevant to recovery/persistence terminology but not an unsupervised seven-day ICU cluster model.",
+    ),
+    "41557579": (
+        "include_core",
+        "Adult SA-AKI subphenotype-identification study indexed in 2026; makes an unqualified first-ever SA-AKI subphenotyping claim untenable.",
+    ),
+    "41938902": (
+        "include_context",
+        "Prospective septic-shock cohort comparing persistent versus transient SA-AKI; relevant to trajectory-outcome positioning.",
+    ),
+    "40637493": (
+        "exclude_pediatric",
+        "Pediatric-only SA-AKI subphenotype study; excluded from the adult primary evidence set but retained in the audit trail.",
+    ),
+}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--out-dir",
+        type=Path,
+        default=Path("results/revision/W7_literature_update"),
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
     args = parse_args()
-    output_dir = args.output_dir.resolve()
+    output_dir = args.out_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
     archive: dict[str, object] = {
         "search_date": SEARCH_DATE.isoformat(),
@@ -173,13 +212,36 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(ordered)
 
+    screening_rows = []
+    record_by_pmid = {record["pmid"]: record for record in ordered}
+    for pmid, (decision, rationale) in KEY_SCREENING.items():
+        record = record_by_pmid.get(pmid)
+        screening_rows.append(
+            {
+                "pmid": pmid,
+                "found_in_current_search": record is not None,
+                "decision": decision,
+                "rationale": rationale,
+                "title": record["title"] if record else "",
+                "year": record["year"] if record else "",
+                "journal": record["journal"] if record else "",
+                "doi": record["doi"] if record else "",
+                "pubmed_url": record["pubmed_url"] if record else f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
+            }
+        )
+    with (output_dir / "key_literature_screening.csv").open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(screening_rows[0]), lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(screening_rows)
+
     lines = [
         "# Reproducible literature-search record",
         "",
         f"- Search date: {SEARCH_DATE.isoformat()}",
         "- Database: PubMed (NCBI E-utilities)",
         f"- Unique records retrieved: {len(ordered)}",
-        "- Screening status: title/abstract relevance screening required before citation insertion",
+        "- Screening status: key overlapping records screened; full retrieved set retained for audit",
+        "- Positioning decision: remove any unqualified claim that this is the first SA-AKI subphenotyping study",
         "",
         "## Exact queries",
         "",
@@ -192,6 +254,12 @@ def main() -> None:
         "Include adult ICU/critical-care AKI or SA-AKI trajectory/subphenotype studies and directly relevant consensus or furosemide-response methods papers. Exclude pediatric-only, non-human, biomarker-only without trajectory relevance, conference-only, protocol-only, and preprint records.",
         "",
         "The CSV preserves all retrieved records. Citation decisions must be documented separately after relevance screening; retrieval alone does not establish eligibility.",
+        "",
+        "## Positioning implication",
+        "",
+        "The updated search identified adult SA-AKI subphenotyping and sepsis-AKI creatinine-trajectory studies published before this revision, including PMID 38445412, PMID 38730421, and PMID 41557579. The manuscript must therefore avoid an unqualified first-ever novelty claim. The defensible contribution is narrower: cross-database reproducibility of three multivariable kidney-function trajectories over the first seven days after SA-AKI onset, with explicit differences in available inputs across cohorts.",
+        "",
+        "Key inclusion/exclusion decisions are recorded in `key_literature_screening.csv`.",
     ])
     (output_dir / "W7_LITERATURE_SEARCH_PROTOCOL.md").write_text(
         "\n".join(lines) + "\n", encoding="utf-8"

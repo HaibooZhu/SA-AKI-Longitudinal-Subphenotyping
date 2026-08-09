@@ -25,15 +25,19 @@ FEATURE_LABEL = {
 
 
 def parse_args() -> argparse.Namespace:
-    repo = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
     parser.add_argument("--scenario", required=True)
     parser.add_argument("--scenario-input", type=Path, required=True)
-    parser.add_argument("--original-data", type=Path, required=True)
+    parser.add_argument(
+        "--original-data",
+        type=Path,
+        required=True,
+        help="Authorized local archived eICU clustering matrix.",
+    )
     parser.add_argument(
         "--result-dir",
         type=Path,
-        default=repo / "results/revision/cluster_robustness",
+        default=Path("results/revision/W3_cluster_robustness"),
     )
     return parser.parse_args()
 
@@ -129,6 +133,14 @@ def main() -> None:
     args = parse_args()
     args.result_dir.mkdir(parents=True, exist_ok=True)
     assignments = pd.read_csv(args.result_dir / f"{args.scenario}_assignments.csv")
+    diagnostics = pd.read_csv(args.result_dir / f"{args.scenario}_diagnostics.csv")
+    if len(diagnostics) != 1:
+        raise ValueError("Expected exactly one diagnostic row for the scenario")
+    convergence_status = diagnostics.loc[0, "convergence_status"]
+    probability_min = float(assignments["max_median_probability"].min())
+    probability_max = float(assignments["max_median_probability"].max())
+    if probability_min < 0 or probability_max > 1:
+        raise ValueError("Posterior assignment probabilities are outside 0-1")
     original_long = pd.read_csv(args.original_data)
     original = original_long[["stay_id", "groupHPD"]].drop_duplicates("stay_id")
     original = original.rename(columns={"groupHPD": "original_group"})
@@ -167,6 +179,9 @@ def main() -> None:
                     adjusted_rand_score(confident.original_group, confident.aligned_hpd_group)
                     if len(confident) else np.nan
                 ),
+                "convergence_status": convergence_status,
+                "posterior_probability_min": probability_min,
+                "posterior_probability_max": probability_max,
             }
         ]
     )
@@ -197,6 +212,10 @@ archived mixAK settings after changing the urine-output documentation rule. Nume
 mixture labels were aligned to the archived phenotypes by maximum overlap before any
 agreement metric was calculated.
 
+**Run diagnostic status: {convergence_status}.** A convergence warning prevents this
+scenario from being presented as confirmatory evidence even when agreement metrics
+appear favorable.
+
 {metrics.round(3).to_markdown(index=False)}
 
 ## Aligned patient counts
@@ -215,6 +234,8 @@ agreement metric was calculated.
 - This is a single-chain sensitivity refit matching the executable archived settings.
   It does not validate the manuscript's prior three-chain/10,000-iteration description,
   which must be corrected.
+- Posterior probabilities are used on their native 0-1 scale; no division by two or
+  other display-only rescaling is applied.
 """
     (args.result_dir / f"{args.scenario}_CLUSTER_SENSITIVITY.md").write_text(report, encoding="utf-8")
     print(metrics.to_string(index=False))

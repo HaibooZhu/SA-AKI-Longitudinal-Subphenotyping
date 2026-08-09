@@ -68,13 +68,17 @@ COHORT_LABEL = {"mimic": "MIMIC-IV", "aumcdb": "AUMC", "eicu": "eICU-CRD"}
 
 
 def parse_args() -> argparse.Namespace:
-    repo = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source-matrix", type=Path, required=True)
+    parser.add_argument(
+        "--source-matrix",
+        type=Path,
+        required=True,
+        help="Authorized local combined longitudinal source matrix.",
+    )
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=repo / "results/revision/harmonized_longitudinal_tables",
+        default=Path("results/revision/harmonized_longitudinal_tables"),
     )
     return parser.parse_args()
 
@@ -95,7 +99,10 @@ def harmonize(source: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     before = selected[["dataset"] + FEATURES].isna().groupby(selected.dataset).mean()
 
     eicu = selected.dataset == "eicu"
-    selected.loc[eicu, "fio2"] = pd.to_numeric(selected.loc[eicu, "fio2"], errors="coerce") * 100
+    eicu_fio2 = pd.to_numeric(selected.loc[eicu, "fio2"], errors="coerce")
+    if eicu_fio2.dropna().gt(1.0).any():
+        raise ValueError("eICU FiO2 contains values above 1.0 before fraction-to-percent conversion")
+    selected.loc[eicu, "fio2"] = eicu_fio2 * 100
     selected["fio2"] = pd.to_numeric(selected.fio2, errors="coerce").where(
         pd.to_numeric(selected.fio2, errors="coerce").between(21, 100, inclusive="both")
     )
@@ -194,6 +201,12 @@ def main() -> None:
     args = parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
     source = pd.read_csv(args.source_matrix)
+    required_identifiers = {"stay_id", "time", "dataset", "groupHPD"}
+    missing_identifiers = sorted(required_identifiers - set(source.columns))
+    if missing_identifiers:
+        raise ValueError(f"Source matrix is missing identifiers: {missing_identifiers}")
+    if source.duplicated(["dataset", "stay_id", "time"]).any():
+        raise ValueError("Source matrix contains duplicate cohort-patient-time rows")
     missing = [feature for feature in FEATURES if feature not in source.columns]
     if missing:
         raise ValueError(f"Source matrix is missing expected variables: {missing}")

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 from itertools import combinations
 from pathlib import Path
 
@@ -21,18 +22,70 @@ COHORT_LABEL = {"mimic": "MIMIC-IV", "aumc": "AUMC"}
 RESPONSE_LEVELS = ["No diuretic", "Non-responsive", "responsive"]
 MATCHED_VARIABLES = ["creatinine", "urineoutput", "sofa_norenal", "colloid_bolus"]
 AUDIT_VARIABLES = MATCHED_VARIABLES + ["age", "male", "weight", "baseline_Scr"]
+AUTHORITATIVE_FILES = {
+    "mimic": "01.MIMICIV_SAKI_trajCluster/sk_survival.csv",
+    "aumc": "02.AUMCdb_SAKI_trajCluster/sk_survival.csv",
+}
+MATCHING_SPECS = [
+    ("mimic", "DR", "TriMatch", "caliper=0.05"),
+    ("mimic", "RR", "TriMatch OneToN", "M1=1.5; M2=4"),
+    ("mimic", "PW", "TriMatch", "caliper=0.14"),
+    ("aumc", "DR", "TriMatch", "caliper=0.10"),
+    ("aumc", "RR", "TriMatch", "caliper=0.03"),
+    ("aumc", "PW", "TriMatch", "caliper=0.20"),
+]
 
 
 def parse_args() -> argparse.Namespace:
-    repo = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data-dir", type=Path, required=True)
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        required=True,
+        help="Authorized local directory containing the archived fluid-resuscitation inputs.",
+    )
+    parser.add_argument(
+        "--frozen-code-root",
+        type=Path,
+        required=True,
+        help="Read-only local snapshot of the historical fluid-resuscitation code.",
+    )
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=repo / "results/revision/diuretic_exploratory",
+        default=Path("results/revision/W6_diuretic_exploratory"),
     )
     return parser.parse_args()
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def historical_matching_table(code_root: Path) -> pd.DataFrame:
+    paths = {
+        "mimic": code_root / "01.mimic/04.R_diuretic_responsitive-3psm.py",
+        "aumc": code_root / "02.aumc/04.R_diuretic_responsitive-3psm.py",
+    }
+    rows = []
+    for cohort, phenotype, method, tuning in MATCHING_SPECS:
+        path = paths[cohort]
+        rows.append(
+            {
+                "cohort": COHORT_LABEL[cohort],
+                "phenotype": phenotype,
+                "historical_method": method,
+                "historical_tuning": tuning,
+                "historical_covariates": ", ".join(MATCHED_VARIABLES),
+                "source_file": path.name,
+                "source_sha256": sha256(path),
+            }
+        )
+    return pd.DataFrame(rows)
 
 
 def load_files(data_dir: Path, cohort: str) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -40,6 +93,21 @@ def load_files(data_dir: Path, cohort: str) -> tuple[pd.DataFrame, pd.DataFrame,
     full = pd.read_csv(folder / "df_diuretic_responsitive.csv")
     matched = pd.read_csv(folder / "df_diuretic_responsitive_match.csv")
     events = pd.read_csv(folder / "tmp_df_diuretic_responsitive.csv")
+    authoritative = pd.read_csv(data_dir.parent / AUTHORITATIVE_FILES[cohort])[
+        ["stay_id", "groupHPD", "mortality_28d", "survival_28day"]
+    ]
+    if authoritative.stay_id.duplicated().any() or full.stay_id.duplicated().any():
+        raise ValueError(f"Duplicate patient identifiers in {cohort} diuretic inputs")
+    if set(authoritative.stay_id) != set(full.stay_id):
+        raise ValueError(f"Diuretic covariate file is not aligned to authoritative {cohort}")
+    # The full historical table supplies covariates only. Phenotype and outcomes
+    # are overwritten from the authoritative survival artifact.
+    full = authoritative.merge(
+        full.drop(columns=["groupHPD", "mortality_28d", "survival_28day"]),
+        on="stay_id",
+        how="left",
+        validate="one_to_one",
+    )
     return full, matched, events
 
 
@@ -113,7 +181,8 @@ def build_landmark(cohort: str, full: pd.DataFrame, events: pd.DataFrame) -> pd.
     frame["groupHPD"] = pd.to_numeric(frame.groupHPD, errors="coerce").astype(int)
     frame["male"] = frame.gender.map({"M": 1.0, "F": 0.0, 1: 1.0, 0: 0.0})
     frame["age10"] = pd.to_numeric(frame.age, errors="coerce") / 10
-    frame["log_baseline_scr"] = np.log(pd.to_numeric(frame.baseline_Scr, errors="coerce"))
+    baseline = pd.to_numeric(frame.baseline_Scr, errors="coerce")
+    frame["log_baseline_scr"] = np.where(baseline > 0, np.log(baseline), np.nan)
     frame["log_pre_uo"] = np.log1p(pd.to_numeric(frame.urineoutput_before_useDiu, errors="coerce"))
     frame["log_dose"] = np.log1p(pd.to_numeric(frame.diuretic_amout, errors="coerce"))
     frame["cohort"] = cohort
@@ -150,6 +219,14 @@ def fit_pooled_sensitivity(cohort: str, frame: pd.DataFrame) -> pd.DataFrame:
                 "n_complete": len(complete),
                 "deaths": int(complete.mortality_28d.sum()),
                 "responsive_n": int(complete[response].sum()),
+                "n_parameters": len(fit.params),
+                "events_per_parameter": float(complete.mortality_28d.sum() / len(fit.params)),
+                "converged": bool(fit.converged),
+                "diagnostic_flag": (
+                    "PASS"
+                    if complete.mortality_28d.sum() / len(fit.params) >= 10
+                    else "CAUTION_LOW_EVENTS"
+                ),
             }
         )
     return pd.DataFrame(rows)
@@ -197,6 +274,14 @@ def fit_interaction(cohort: str, frame: pd.DataFrame) -> tuple[pd.DataFrame, flo
                 "p_value": 2 * norm.sf(abs(z)),
                 "n_complete": len(complete),
                 "deaths": int(complete.mortality_28d.sum()),
+                "n_parameters": len(fit.params),
+                "events_per_parameter": float(complete.mortality_28d.sum() / len(fit.params)),
+                "converged": bool(fit.converged),
+                "diagnostic_flag": (
+                    "PASS"
+                    if complete.mortality_28d.sum() / len(fit.params) >= 10
+                    else "CAUTION_LOW_EVENTS"
+                ),
             }
         )
     constraint = ", ".join(f"{term} = 0" for term in interaction_terms.values())
@@ -269,6 +354,7 @@ def plot_interactions(interactions: pd.DataFrame, out_dir: Path) -> None:
 
 def write_report(
     out_dir: Path,
+    matching_spec: pd.DataFrame,
     balance: pd.DataFrame,
     descriptive: pd.DataFrame,
     pooled: pd.DataFrame,
@@ -295,6 +381,17 @@ three-group propensity matching used only day-1 creatinine, urine output, nonren
 and colloid input and did not retain matched-triplet identifiers. The diuretic findings
 must therefore be demoted to exploratory, associative supplementary results.
 
+## Historical matching implementation audit
+
+{md(matching_spec.drop(columns="source_sha256"))}
+
+The frozen executable analysis used `TriMatch`, with phenotype- and cohort-specific
+calipers or OneToN settings. This does not match the submitted Methods description of
+a single binary logistic nearest-neighbor procedure with a 0.2-logit caliper. The
+historical matched analysis is therefore retained only as an audited legacy result; it
+is not used to estimate a revised causal treatment effect. Source hashes are available
+in `historical_matching_spec.csv`.
+
 ## Archived matching balance audit
 
 Maximum pairwise absolute standardized mean differences (SMDs) were calculated among
@@ -319,6 +416,12 @@ in day 1, who were alive beyond 24 hours, and who had positive recorded urine vo
 both two-hour windows around the first administration. The comparison is response versus
 nonresponse among treated patients; untreated patients are not used as a causal control.
 
+The archived first-dose rule labels a dose responsive if post-dose two-hour urine output
+is greater than 200 mL when pre-dose output is already greater than 200 mL, or if output
+is both greater than 200 mL and more than 10% above the pre-dose value. This makes the
+archived rule nearly equivalent to the absolute 200-mL rule in these data. The stricter
+10%-increase-plus-200-mL rule is reported separately.
+
 {md(descriptive[["cohort_label", "phenotype", "response", "n", "deaths", "mortality_risk"]])}
 
 ## Pooled adjusted response association under alternate response rules
@@ -337,6 +440,12 @@ Joint interaction tests:
 
 {md(interaction_tests)}
 
+The nominal MIMIC-IV interaction was not reproduced in AUMC. Because phenotype is
+defined using the same post-onset trajectory during which treatment response occurs,
+these estimates are subject to post-exposure conditioning and cannot be interpreted as
+treatment-effect modification. `CAUTION_LOW_EVENTS` denotes fewer than 10 deaths per
+fitted coefficient.
+
 ## Interpretation and reporting decision
 
 1. Remove diuretic responsiveness from the title, abstract conclusion, and main claim.
@@ -354,13 +463,13 @@ Joint interaction tests:
 def main() -> None:
     args = parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    balance_parts, landmark_parts, descriptive_parts, pooled_parts, interaction_parts = [], [], [], [], []
+    matching_spec = historical_matching_table(args.frozen_code_root)
+    balance_parts, descriptive_parts, pooled_parts, interaction_parts = [], [], [], []
     interaction_tests = []
     for cohort in ["mimic", "aumc"]:
         full, matched, events = load_files(args.data_dir, cohort)
         balance_parts.append(balance_table(cohort, full, matched))
         landmark = build_landmark(cohort, full, events)
-        landmark_parts.append(landmark)
         descriptive_parts.append(descriptive_landmark(cohort, landmark))
         pooled_parts.append(fit_pooled_sensitivity(cohort, landmark))
         interaction, p_value = fit_interaction(cohort, landmark)
@@ -374,20 +483,19 @@ def main() -> None:
         )
 
     balance = pd.concat(balance_parts, ignore_index=True)
-    landmark_all = pd.concat(landmark_parts, ignore_index=True)
     descriptive = pd.concat(descriptive_parts, ignore_index=True)
     pooled = pd.concat(pooled_parts, ignore_index=True)
     interactions = pd.concat(interaction_parts, ignore_index=True)
     interaction_tests_df = pd.DataFrame(interaction_tests)
 
+    matching_spec.to_csv(args.out_dir / "historical_matching_spec.csv", index=False)
     balance.to_csv(args.out_dir / "archived_psm_balance_smd.csv", index=False)
-    landmark_all.to_csv(args.out_dir / "early_first_dose_landmark_cohort.csv", index=False)
     descriptive.to_csv(args.out_dir / "early_first_dose_descriptive.csv", index=False)
     pooled.to_csv(args.out_dir / "early_first_dose_pooled_models.csv", index=False)
     interactions.to_csv(args.out_dir / "early_first_dose_interaction_models.csv", index=False)
     interaction_tests_df.to_csv(args.out_dir / "early_first_dose_interaction_tests.csv", index=False)
     plot_interactions(interactions, args.out_dir)
-    write_report(out_dir=args.out_dir, balance=balance, descriptive=descriptive, pooled=pooled,
+    write_report(out_dir=args.out_dir, matching_spec=matching_spec, balance=balance, descriptive=descriptive, pooled=pooled,
                  interactions=interactions, interaction_tests=interaction_tests_df)
     print(pooled.to_string(index=False))
 

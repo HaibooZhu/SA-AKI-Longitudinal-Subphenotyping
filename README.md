@@ -10,7 +10,7 @@ This repository combines the curated analysis package used for the submitted stu
 
 ## Associated manuscript
 
-**Working title:** “Longitudinal subphenotypes in sepsis-associated acute kidney injury patients with distinct kidney injury trajectories and diuretic therapy responses.”
+**Revised working title:** “Reproducible Trajectory-Defined Subphenotypes of Sepsis-Associated Acute Kidney Injury Across Three International ICU Cohorts.”
 
 The manuscript is under revision at the *Journal of Translational Internal Medicine*. Bibliographic fields will be updated after a final editorial decision. Code in `revision_analysis/` should therefore be read as revision-stage analytical material, not as evidence of journal acceptance.
 
@@ -102,7 +102,7 @@ python scripts/generate_time_windows.py --help
 python revision_analysis/07_tables_figures/regenerate_supplementary_tables.py --help
 ```
 
-All public revision scripts require the caller to supply input paths explicitly. Generated files default to `results/`, which is ignored by Git. See [the revision workstream guide](revision_analysis/README.md) and [the input-data contract](docs/INPUT_DATA_CONTRACT.md) before running them.
+All public revision scripts that consume study data require the caller to supply those input paths explicitly. Generated files default to `results/`, which is ignored by Git. See [the revision workstream guide](revision_analysis/README.md) and [the input-data contract](docs/INPUT_DATA_CONTRACT.md) before running them.
 
 ## Baseline analysis entry points
 
@@ -123,12 +123,13 @@ The YAML files in `configs/` are templates. Copy one to a local, ignored configu
 
 | Directory | Revision purpose | Review mapping |
 | --- | --- | --- |
+| `00_data_lineage/` | Lock the authoritative eICU cohort and detect mixed historical exports without releasing identifiers | Editor E.1 |
 | `01_data_audit/` | Trace Supplementary Table S3 from source matrix to workbook values | Editor E.1; Reviewer 1 major comment 3 |
-| `02_missingness_sensitivity/` | Rebuild eICU urine-output documentation scenarios | Editor E.2; Reviewer 1 major comment 4 |
-| `03_cluster_robustness/` | Refit, align, and quantify assignment stability and uncertainty | Editor E.2 |
-| `04_independent_outcomes/` | Estimate adjusted clinical outcome associations | Editor E.3 |
+| `02_missingness_sensitivity/` | Audit cross-cohort inputs, rebuild the complete time grid, and create eICU urine-output scenarios | Editor E.2; Reviewer 1 major comment 4 |
+| `03_cluster_robustness/` | Audit archived k candidates, refit k=3, and quantify assignment stability and uncertainty | Editor E.2 |
+| `04_independent_outcomes/` | Estimate adjusted clinical outcome associations including onset nonrenal SOFA | Editor E.3 |
 | `05_diuretic_exploratory/` | Audit and restrict the post-exposure diuretic analysis | Editor E.4; Reviewer 1 major comment 1 |
-| `06_classifier_validation/` | Revalidate discrimination, class balance, and calibration | Editor E.5; Reviewer 1 major comment 2 |
+| `06_classifier_validation/` | Replay the archived model and compare discrimination, calibration, and incremental value with a simple model | Editor E.5; Reviewer 1 major comment 2 |
 | `07_tables_figures/` | Regenerate harmonized longitudinal supplementary tables | Data-integrity revision |
 | `08_literature_update/` | Archive reproducible PubMed searches used in the revision | Literature update |
 
@@ -147,8 +148,10 @@ Do not commit credential files, local path configuration, patient identifiers, d
 - Random seeds are declared in the relevant scripts or configuration objects.
 - Revision scripts write reports, plots, and tabular results to a caller-controlled output directory.
 - `run_mixak_k3_sensitivity.R` preserves posterior probabilities on their native 0–1 scale; no division by two is applied.
+- The ≥50% urine-output coverage scenario uses the fixed 30-window denominator, not the number of available rows.
 - Numeric mixture labels are aligned to archived phenotypes before agreement statistics are calculated.
 - Data-audit outputs distinguish source-data discrepancies from workbook-rendering discrepancies.
+- Patient-level assignments and prediction files are intentionally excluded from version control; public outputs must remain aggregate-only.
 
 ## License
 

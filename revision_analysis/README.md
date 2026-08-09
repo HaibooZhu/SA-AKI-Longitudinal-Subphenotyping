@@ -13,12 +13,14 @@ This directory contains the code added during the JTIM major revision. It is del
 
 | Directory | Purpose | Main output |
 | --- | --- | --- |
+| `00_data_lineage/` | Resolve the authoritative eICU cohort and audit historical derived-file lineage | aggregate lineage status and hashes |
+| `00_config/` | Store the canonical mixAK sensitivity configuration | machine-readable model settings |
 | `01_data_audit/` | Extract workbook cells and audit Supplementary Table S3 against source and generated tables | discrepancy tables and audit report |
-| `02_missingness_sensitivity/` | Construct documented-window and high-coverage eICU urine-output scenarios | scenario-specific longitudinal CSV files |
-| `03_cluster_robustness/` | Refit the three-component model and compare aligned assignments | agreement metrics, uncertainty, and trajectory plots |
-| `04_independent_outcomes/` | Fit adjusted mortality and RRT association models | effect tables and forest plot |
+| `02_missingness_sensitivity/` | Audit cohort inputs, construct the planned 30-window grid, and build documented-window/high-coverage scenarios | audit summaries and local scenario inputs |
+| `03_cluster_robustness/` | Re-audit archived eICU k=2–5, refit the three-component model, and compare aligned assignments | aggregate diagnostics, agreement metrics, and trajectory plots |
+| `04_independent_outcomes/` | Fit adjusted mortality and RRT association models with onset nonrenal SOFA | effect tables and forest plot |
 | `05_diuretic_exploratory/` | Audit archived matching and run a restricted landmark analysis | balance, descriptive, and interaction summaries |
-| `06_classifier_validation/` | Refit a fixed XGBoost sensitivity model and assess calibration | balanced metrics, bootstrap intervals, and plots |
+| `06_classifier_validation/` | Replay the archived AutoGluon model, compare it with six-variable logistic regression, and run fixed-XGBoost sensitivity | balanced metrics, paired bootstrap intervals, and calibration plots |
 | `07_tables_figures/` | Apply harmonization rules and regenerate longitudinal tables | tidy data dictionary and Tables S3–S5 |
 | `08_literature_update/` | Re-run and archive predefined PubMed searches | JSON, CSV, and protocol record |
 
@@ -90,7 +92,9 @@ The remaining scripts expose their full input contract through `--help`. Detaile
 
 - Posterior membership probabilities are already on the 0–1 scale and must not be divided by two.
 - A patient is marked uncertain when the 95% HPD lower bound for the assigned component does not exceed 0.5.
+- High urine-output coverage is defined against all 30 planned trajectory windows; using only available rows inflates eligibility when follow-up ends early.
 - Mixture-component numbers are arbitrary; align labels before calculating agreement, ARI, or NMI.
 - The adjusted outcome models estimate associations, not causal effects.
 - The diuretic workstream is exploratory because treatment indication and post-exposure classification can introduce bias.
 - The classifier workstream evaluates retrospective discrimination and calibration, not clinical readiness.
+- The public repository excludes patient-level assignments, predictions, landmark cohorts, and restricted fitted objects.

@@ -45,13 +45,17 @@ PHENOTYPE = {1: "DR", 2: "RR", 3: "PW"}
 
 
 def parse_args() -> argparse.Namespace:
-    repo = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-dir", type=Path, required=True)
+    parser.add_argument(
+        "--model-dir",
+        type=Path,
+        required=True,
+        help="Authorized local classifier-analysis directory containing the prepared splits.",
+    )
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=repo / "results/revision/classifier_validation",
+        default=Path("results/revision/W4_classifier_validation"),
     )
     parser.add_argument("--bootstrap", type=int, default=1000)
     return parser.parse_args()
@@ -340,6 +344,63 @@ def plot_validation(
     plt.close(fig)
 
 
+def plot_archived_calibration_bins(bins: pd.DataFrame, out_dir: Path) -> None:
+    """Plot aggregate calibration bins exported by the exact-version replay."""
+    mpl.rcParams.update(
+        {
+            "font.family": "sans-serif",
+            "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans", "sans-serif"],
+            "svg.fonttype": "none",
+            "pdf.fonttype": 42,
+            "font.size": 7,
+            "axes.spines.right": False,
+            "axes.spines.top": False,
+            "axes.linewidth": 0.8,
+            "legend.frameon": False,
+        }
+    )
+    colors = {"DR": "#3B6FB6", "RR": "#6A9F58", "PW": "#C7773E"}
+    models = [
+        ("archived_AutoGluon_XGBoost_BAG_L2", "Archived AutoGluon XGBoost"),
+        ("simple_six_variable_logistic", "Six-variable logistic comparator"),
+    ]
+    cohorts = [
+        ("internal_MIMIC_eICU", "Internal MIMIC-IV/eICU"),
+        ("external_AUMC", "External AUMC"),
+    ]
+    fig, axes = plt.subplots(2, 2, figsize=(7.2, 6.2), constrained_layout=True)
+    for row, (model, model_label) in enumerate(models):
+        for column, (cohort, cohort_label) in enumerate(cohorts):
+            ax = axes[row, column]
+            ax.plot([0, 1], [0, 1], color="#777777", linestyle="--", linewidth=0.8)
+            subset = bins.loc[bins.model.eq(model) & bins.cohort.eq(cohort)]
+            for phenotype in ["DR", "RR", "PW"]:
+                values = subset.loc[subset.phenotype.eq(phenotype)].sort_values("bin")
+                ax.plot(
+                    values.mean_predicted,
+                    values.observed_frequency,
+                    marker="o",
+                    markersize=2.8,
+                    linewidth=1.0,
+                    color=colors[phenotype],
+                    label=phenotype,
+                )
+            ax.set_xlim(0, 1)
+            ax.set_ylim(0, 1)
+            ax.set_xlabel("Predicted probability")
+            ax.set_ylabel("Observed frequency")
+            ax.set_title(f"{model_label}\n{cohort_label}")
+            ax.legend(ncol=3, fontsize=6, loc="upper left")
+    for label, ax in zip(["a", "b", "c", "d"], axes.ravel()):
+        ax.text(-0.13, 1.08, label, transform=ax.transAxes, fontweight="bold", fontsize=8)
+    stem = out_dir / "W4_archived_model_calibration_comparator"
+    fig.savefig(stem.with_suffix(".svg"), bbox_inches="tight")
+    fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
+    fig.savefig(stem.with_suffix(".tiff"), dpi=600, bbox_inches="tight")
+    fig.savefig(stem.with_suffix(".png"), dpi=220, bbox_inches="tight")
+    plt.close(fig)
+
+
 def write_report(
     out_dir: Path,
     original_performance: pd.DataFrame,
@@ -347,6 +408,9 @@ def write_report(
     overall: pd.DataFrame,
     per_class: pd.DataFrame,
     bootstrap: pd.DataFrame,
+    replay_metrics: pd.DataFrame | None = None,
+    replay_calibration: pd.DataFrame | None = None,
+    incremental: pd.DataFrame | None = None,
 ) -> None:
     def md(df: pd.DataFrame, digits: int = 3) -> str:
         return df.round(digits).to_markdown(index=False)
@@ -368,6 +432,43 @@ def write_report(
         "f1_C2",
         "f1_C3",
     ]
+    if replay_metrics is not None:
+        replay_section = f"""
+## Exact-version replay of the submitted AutoGluon model
+
+The archived `XGBoost_BAG_L2` predictor was reloaded in AutoGluon 0.7.0,
+scikit-learn 1.2.2, and XGBoost 1.7.4. The comparator is a fixed multinomial
+logistic regression using six transparent first-24-hour kidney summaries:
+creatinine minimum/maximum, creatinine-to-baseline ratio minimum/maximum, and
+urine-output minimum/mean.
+
+{md(replay_metrics)}
+
+### Calibration of the submitted model and comparator
+
+{md(replay_calibration)}
+
+Ideal calibration has intercept 0 and slope 1; lower ECE is better. The submitted
+model is reasonably calibrated on the internal test set but markedly miscalibrated
+in AUMC, especially for DR and RR.
+
+### Paired incremental value
+
+{md(incremental)}
+
+Differences are archived AutoGluon minus simple logistic on the same patients with
+class-stratified bootstrap intervals. The archived model improves all four metrics
+internally. In external AUMC, it does not improve macro OvO AUC and performs worse on
+balanced accuracy, macro F1, and Brier score. Consequently, incremental clinical value
+beyond the simple kidney summary model is not established externally.
+"""
+    else:
+        replay_section = """
+## Exact-version replay status
+
+Exact-version AutoGluon replay outputs were not available in this run. Do not make a
+calibration or incremental-value claim from the fixed-parameter sensitivity model.
+"""
     text = f"""# W4 Classifier validation audit
 
 ## Bottom line
@@ -391,6 +492,8 @@ These six directed values use each named positive class's raw multiclass probabi
 the two directions of a class pair are therefore not mathematically constrained to be
 identical. Values were transcribed from the archived vector PDFs and visually checked
 against rendered pages.
+
+{replay_section}
 
 ## Independent fixed-parameter XGBoost revalidation
 
@@ -417,6 +520,8 @@ used for fitting and the two test files were not used for tuning.
 3. Add confusion matrices and calibration plots to the supplement.
 4. Remove claims of immediate clinical deployment, treatment assignment, or reliable
    bedside differentiation between all three phenotypes.
+5. State that external incremental value over the simple comparator was not shown and
+   that prospective validation and recalibration are required.
 """
     (out_dir / "W4_CLASSIFIER_VALIDATION.md").write_text(text, encoding="utf-8")
 
@@ -465,16 +570,6 @@ def main() -> None:
         pair_parts.append(pairwise)
         calibration_parts.append(calibration)
         bootstrap_parts.append(bootstrap_key_metrics(cohort, y, pred, prob, args.bootstrap))
-        pd.DataFrame(
-            {
-                "stay_id": frame.stay_id,
-                "observed_class": y,
-                "predicted_class": pred,
-                "p_DR": prob[:, 0],
-                "p_RR": prob[:, 1],
-                "p_PW": prob[:, 2],
-            }
-        ).to_csv(args.out_dir / f"predictions_{cohort}.csv", index=False)
 
     original_performance, original_pairwise = original_tables(args.model_dir)
     overall_all = pd.concat(overall_parts, ignore_index=True)
@@ -492,6 +587,27 @@ def main() -> None:
     bootstrap_all.to_csv(args.out_dir / "revalidation_bootstrap_ci.csv", index=False)
 
     plot_validation(evaluations, args.out_dir)
+    replay_metrics_path = args.out_dir / "primary_and_comparator_metrics.csv"
+    replay_calibration_path = args.out_dir / "primary_and_comparator_calibration.csv"
+    replay_bins_path = args.out_dir / "primary_and_comparator_calibration_bins.csv"
+    incremental_path = args.out_dir / "paired_incremental_value.csv"
+    if all(
+        path.exists()
+        for path in [
+            replay_metrics_path,
+            replay_calibration_path,
+            replay_bins_path,
+            incremental_path,
+        ]
+    ):
+        replay_metrics = pd.read_csv(replay_metrics_path)
+        replay_calibration = pd.read_csv(replay_calibration_path)
+        replay_bins = pd.read_csv(replay_bins_path)
+        incremental = pd.read_csv(incremental_path)
+        plot_archived_calibration_bins(replay_bins, args.out_dir)
+    else:
+        replay_metrics = replay_calibration = incremental = None
+
     write_report(
         args.out_dir,
         original_performance,
@@ -499,6 +615,9 @@ def main() -> None:
         overall_all,
         class_all,
         bootstrap_all,
+        replay_metrics=replay_metrics,
+        replay_calibration=replay_calibration,
+        incremental=incremental,
     )
     environment = {
         "python": sys.version,
