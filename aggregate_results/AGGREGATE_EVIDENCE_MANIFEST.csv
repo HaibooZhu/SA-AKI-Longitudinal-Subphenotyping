@@ -77,3 +77,7 @@ W6_diuretic_exploratory/W6_early_diuretic_response_forest.png,,,,,34727.0,779278
 W6_diuretic_exploratory/W6_early_diuretic_response_forest.pdf,,,,,33137.0,389e5680aa4c8743a7ec195abbc87551971097b0a49b0b93ea7be91e788fc149
 W8_revision_document_qa/W8_REVISION_DOCUMENT_QA.md,True,,,,,
 W8_revision_document_qa/revision_document_qa_status.json,,,,True,,
+W9_numerical_consistency/W9_NUMERICAL_CONSISTENCY_AUDIT.md,True,,,,,
+W9_numerical_consistency/numerical_consistency_status.json,,,,True,,
+W10_reviewer_traceability/W10_FINAL_REVIEWER_TRACEABILITY.md,True,,,,,
+W10_reviewer_traceability/reviewer_traceability_status.json,,,,True,,

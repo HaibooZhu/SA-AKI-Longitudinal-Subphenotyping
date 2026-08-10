@@ -138,7 +138,7 @@ The YAML files in `configs/` are historical templates, not the authoritative spe
 | `06_classifier_validation/` | Replay the archived model and compare discrimination, calibration, and incremental value with a simple model | Editor E.5; Reviewer 1 major comment 2 |
 | `07_tables_figures/` | Regenerate harmonized longitudinal supplementary tables | Data-integrity revision |
 | `08_literature_update/` | Archive reproducible PubMed searches used in the revision | Literature update |
-| `09_revision_documents/` | Fail-closed structural QA for the regenerated revision documents | Final submission QA |
+| `09_revision_documents/` | Fail-closed document, numerical-consistency, and reviewer-response traceability QA | Final submission QA |
 
 ## Data access and privacy
 
@@ -160,6 +160,8 @@ Do not commit credential files, local path configuration, patient identifiers, d
 - The ≥50% urine-output coverage scenario uses the fixed 30-window denominator, not the number of available rows.
 - Numeric mixture labels are aligned to archived phenotypes before agreement statistics are calculated.
 - Data-audit outputs distinguish source-data discrepancies from workbook-rendering discrepancies.
+- Table S1 is checked cell for cell against its aggregate source CSV; embedded Figure S2 is checked against the released asset by SHA-256 with a pixel-comparison fallback.
+- The final numerical audit maps aggregate source results to repeated manuscript, supplement, and response-letter locations; detailed extracted prose remains private and is not published.
 - Patient-level assignments and prediction files are intentionally excluded from version control; public outputs must remain aggregate-only.
 - Archived classifier replay requires the frozen legacy environment in [`environment.archived-autogluon.yml`](environment.archived-autogluon.yml), not the current package defaults.
 - Data-free unit tests run automatically in GitHub Actions; full clinical analyses require authorized local data and therefore are not executed in public CI.

@@ -55,7 +55,27 @@
       },
       "table_s1_selection_annotation_present": true,
       "table_s1_eicu_k3_not_unanimous": true,
-      "table_s1_k3_not_unanimous_across_cohorts": true
+      "table_s1_k3_not_unanimous_across_cohorts": true,
+      "table_s1_source_identity": {
+        "source_exists": true,
+        "expected_rows": 13,
+        "observed_rows": 13,
+        "expected_cells": 78,
+        "observed_cells": 78,
+        "mismatch_count": 0,
+        "mismatches": [],
+        "exact_match": true
+      },
+      "figure_s2_asset_identity": {
+        "caption_found": true,
+        "source_exists": true,
+        "embedded_asset_found": true,
+        "identity_method": "sha256",
+        "exact_match": true,
+        "embedded_relationship": "rId22",
+        "source_sha256": "5f2959be4e6f6886c048dafbe930aa06b4fd80932297b598e9ea5b5a537b9245",
+        "embedded_sha256": "5f2959be4e6f6886c048dafbe930aa06b4fd80932297b598e9ea5b5a537b9245"
+      }
     },
     "prohibited_wording_hits": {
       "JTIM_Revised_Manuscript_clean.docx": [],
