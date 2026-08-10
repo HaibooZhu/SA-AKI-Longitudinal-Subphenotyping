@@ -7,7 +7,7 @@
 - Table S1 restricted to traceable K=2–5 across all three cohorts: True
 - Table S1 includes seed-level selection annotations and does not mark eICU K=3 as unanimous: True
 - Table S1 matches the source CSV cell for cell: True
-- Embedded Figure S2 matches the released asset: True
+- Embedded revised figures matching released assets: 7/7
 - Prohibited legacy claims detected: 0
 - Required scientific content checks passed: True
 

@@ -21,7 +21,7 @@ FIGURES = {
     "Figure S10": "W3_cross_cohort_robustness/cross_cohort_robustness_matrix",
     "Figure S11a": "W3_cluster_robustness/documented_windows_cluster_sensitivity",
     "Figure S11b": "W3_cluster_robustness/high_coverage_cluster_sensitivity",
-    "Figure S12": "W4_classifier_validation/W4_classifier_revalidation",
+    "Figure S12": "W4_classifier_validation/Figure_S12_archived_model_calibration_comparator",
     "Figure S13": "W5_independent_outcomes/W5_adjusted_outcomes_forest",
     "Figure S14": "W6_diuretic_exploratory/W6_early_diuretic_response_forest",
 }
@@ -29,6 +29,12 @@ FORMATS = ("svg", "pdf", "tiff", "png")
 MIN_RASTER_EDGE_PX = 1000
 MIN_TIFF_DPI = 590
 MAX_WIDTH_IN = 7.60
+VISUAL_CRITERIA = (
+    "conclusion_visible",
+    "no_overlap_or_clipping",
+    "readable_at_target_width",
+    "color_semantics_consistent",
+)
 
 
 @dataclass(frozen=True)
@@ -119,28 +125,62 @@ def inspect_artifact(figure_id: str, path: Path) -> ArtifactCheck:
     )
 
 
-def load_visual_review(path: Path) -> dict[str, str]:
+def validate_visual_review_row(row: dict[str, str], current_png_sha256: str) -> dict[str, object]:
+    reviewed_at = row.get("reviewed_at", "").strip()
+    try:
+        datetime.fromisoformat(reviewed_at.replace("Z", "+00:00"))
+        timestamp_valid = True
+    except ValueError:
+        timestamp_valid = False
+    reviewed_sha256 = row.get("reviewed_png_sha256", "").strip().lower()
+    hash_format_valid = re.fullmatch(r"[0-9a-f]{64}", reviewed_sha256) is not None
+    hash_match = hash_format_valid and reviewed_sha256 == current_png_sha256.lower()
+    criteria_pass = all(row.get(field, "") == "PASS" for field in VISUAL_CRITERIA)
+    metadata_complete = bool(row.get("reviewed_by", "").strip()) and timestamp_valid
+    effective_status = "PASS" if (
+        row.get("status") == "PASS"
+        and criteria_pass
+        and metadata_complete
+        and hash_match
+    ) else "FAIL"
+    return {
+        "status": effective_status,
+        "reviewed_png_sha256": reviewed_sha256,
+        "current_png_sha256": current_png_sha256,
+        "hash_match": hash_match,
+        "reviewed_by": row.get("reviewed_by", "").strip(),
+        "reviewed_at": reviewed_at,
+        "criteria_pass": criteria_pass,
+        "metadata_complete": metadata_complete,
+    }
+
+
+def load_visual_review(path: Path, report_root: Path) -> dict[str, dict[str, object]]:
     with path.open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
-    observed = {row["figure_id"]: row["status"] for row in rows}
+    observed = {row["figure_id"]: row for row in rows}
     if set(observed) != set(FIGURES):
         missing = sorted(set(FIGURES) - set(observed))
         extra = sorted(set(observed) - set(FIGURES))
         raise ValueError(f"visual-review figure mismatch: missing={missing}, extra={extra}")
-    for row in rows:
-        fields = [value for key, value in row.items() if key != "figure_id"]
-        if any(value != "PASS" for value in fields):
-            observed[row["figure_id"]] = "FAIL"
-    return observed
+    return {
+        figure_id: validate_visual_review_row(
+            observed[figure_id],
+            sha256(report_root / f"{stem}.png")
+            if (report_root / f"{stem}.png").is_file()
+            else "",
+        )
+        for figure_id, stem in FIGURES.items()
+    }
 
 
 def write_outputs(
-    checks: list[ArtifactCheck], visual: dict[str, str], output_dir: Path
+    checks: list[ArtifactCheck], visual: dict[str, dict[str, object]], output_dir: Path
 ) -> str:
     output_dir.mkdir(parents=True, exist_ok=True)
     overall = "PASS" if (
         all(check.status == "PASS" for check in checks)
-        and all(status == "PASS" for status in visual.values())
+        and all(review["status"] == "PASS" for review in visual.values())
     ) else "FAIL"
 
     csv_path = output_dir / "figure_export_manifest.csv"
@@ -179,6 +219,7 @@ def write_outputs(
         f"- Export artifacts passing: {status['artifact_pass_count']}/{len(checks)}",
         "- Required exports: editable SVG, PDF, 600-dpi TIFF, preview PNG",
         "- Manual visual review: conclusion visibility, clipping/overlap, target-width readability, and color semantics",
+        "- Fail-closed binding: every manual PASS is tied to the current PNG SHA-256, reviewer, and review timestamp",
         "",
         "| Figure | Visual review | Export QA |",
         "|---|---:|---:|",
@@ -187,7 +228,7 @@ def write_outputs(
         export_status = "PASS" if all(
             check.status == "PASS" for check in checks if check.figure_id == figure_id
         ) else "FAIL"
-        lines.append(f"| {figure_id} | {visual[figure_id]} | {export_status} |")
+        lines.append(f"| {figure_id} | {visual[figure_id]['status']} | {export_status} |")
     lines.extend(
         [
             "",
@@ -210,7 +251,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    visual = load_visual_review(args.visual_review)
+    visual = load_visual_review(args.visual_review, args.report_root)
     checks = [
         inspect_artifact(figure_id, args.report_root / f"{stem}.{fmt}")
         for figure_id, stem in FIGURES.items()
