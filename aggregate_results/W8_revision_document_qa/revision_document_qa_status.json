@@ -38,13 +38,60 @@
       ],
       "table_s1_has_only_k2_k5": true,
       "table_s1_has_three_cohorts": true,
-      "table_s1_rows": 12
+      "table_s1_rows": 12,
+      "table_s1_selection_annotations": {
+        "AmsterdamUMCdb:K2": 1,
+        "AmsterdamUMCdb:K3": 2,
+        "AmsterdamUMCdb:K4": 0,
+        "AmsterdamUMCdb:K5": 0,
+        "eICU-CRD:K2": 2,
+        "eICU-CRD:K3": 1,
+        "eICU-CRD:K4": 0,
+        "eICU-CRD:K5": 0,
+        "MIMIC-IV:K2": 1,
+        "MIMIC-IV:K3": 2,
+        "MIMIC-IV:K4": 0,
+        "MIMIC-IV:K5": 0
+      },
+      "table_s1_selection_annotation_present": true,
+      "table_s1_eicu_k3_not_unanimous": true,
+      "table_s1_k3_not_unanimous_across_cohorts": true
     },
     "prohibited_wording_hits": {
       "JTIM_Revised_Manuscript_clean.docx": [],
       "JTIM_Revised_Manuscript_highlight.docx": [],
       "JTIM_Revised_Highlights.docx": [],
-      "JTIM_Revised_Cover_Letter.docx": []
+      "JTIM_Revised_Cover_Letter.docx": [],
+      "JTIM_Point-by-point_Response.docx": []
+    },
+    "required_scientific_content": {
+      "JTIM_Revised_Manuscript_clean.docx": {
+        "aumc_uses_three_clustering_variables": true,
+        "eicu_k3_initialization_sensitivity": true,
+        "high_coverage_uo_does_not_preserve_pw": true,
+        "classifier_has_no_external_incremental_advantage": true,
+        "diuretic_analysis_is_exploratory": true,
+        "complete_followup_and_missing_data_cautions": true,
+        "k3_is_not_unanimous_or_uniquely_optimal": true
+      },
+      "JTIM_Revised_Manuscript_highlight.docx": {
+        "aumc_uses_three_clustering_variables": true,
+        "eicu_k3_initialization_sensitivity": true,
+        "high_coverage_uo_does_not_preserve_pw": true,
+        "classifier_has_no_external_incremental_advantage": true,
+        "diuretic_analysis_is_exploratory": true,
+        "complete_followup_and_missing_data_cautions": true,
+        "k3_is_not_unanimous_or_uniquely_optimal": true
+      },
+      "JTIM_Point-by-point_Response.docx": {
+        "aumc_uses_three_clustering_variables": true,
+        "eicu_k3_initialization_sensitivity": true,
+        "high_coverage_uo_does_not_preserve_pw": true,
+        "classifier_has_no_external_incremental_advantage": true,
+        "diuretic_analysis_is_exploratory": true,
+        "complete_followup_and_missing_data_cautions": true,
+        "k3_is_not_unanimous_or_uniquely_optimal": true
+      }
     }
   }
 }

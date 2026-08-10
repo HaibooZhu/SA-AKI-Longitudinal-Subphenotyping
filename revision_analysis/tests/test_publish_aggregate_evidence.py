@@ -42,6 +42,14 @@ def test_required_editor_evidence_workstreams_are_whitelisted():
         in MODULE.EVIDENCE_FILES
     )
     assert "W3_deep_k_stability/deep_k_status.json" in MODULE.EVIDENCE_FILES
+    assert (
+        "W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.png"
+        in MODULE.EVIDENCE_FILES
+    )
+    assert (
+        "W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.pdf"
+        in MODULE.EVIDENCE_FILES
+    )
 
 
 def test_workstation_paths_are_sanitized(tmp_path):

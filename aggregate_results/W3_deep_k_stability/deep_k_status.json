@@ -11,6 +11,7 @@
     2,
     3
   ],
+  "score_normalization_scope": "within cohort and seed across K=2 and K=3",
   "thresholds": {
     "exact_agreement_minimum": 0.75,
     "ari_minimum": 0.5,

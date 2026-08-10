@@ -101,10 +101,12 @@ def load_grid(refit_dir: Path) -> tuple[pd.DataFrame, dict[tuple[str, int, int],
 
 def score_fits(diagnostics: pd.DataFrame) -> pd.DataFrame:
     scored = diagnostics.copy()
-    scored["scaled_deviance"] = scored.groupby("cohort", group_keys=False)[
-        "mean_deviance"
-    ].transform(minmax)
-    scored["scaled_lag1_failure"] = scored.groupby("cohort", group_keys=False)[
+    # Match the fresh K-grid definition: compare candidate K values only within
+    # the same cohort and initialization. Pooling seeds would change the
+    # min-max denominator and make the two panels of Figure S2 incomparable.
+    score_groups = scored.groupby(["cohort", "seed"], group_keys=False)
+    scored["scaled_deviance"] = score_groups["mean_deviance"].transform(minmax)
+    scored["scaled_lag1_failure"] = score_groups[
         "high_absolute_lag1_fraction"
     ].transform(minmax)
     scored["deep_selection_score"] = np.sqrt(
@@ -264,6 +266,7 @@ def main() -> int:
         "observed_fits": len(scored),
         "seeds": list(SEEDS),
         "candidate_k": list(KS),
+        "score_normalization_scope": "within cohort and seed across K=2 and K=3",
         "thresholds": {
             "exact_agreement_minimum": AGREEMENT_THRESHOLD,
             "ari_minimum": ARI_THRESHOLD,
@@ -310,7 +313,10 @@ precludes direct pooling.
 
 Every prespecified initialization, including poorly mixing or degenerate fits, is
 reported. The experiment evaluates whether a three-pattern representation can be
-reproduced; it does not establish K=3 as the unique true taxonomy.
+reproduced; it does not establish K=3 as the unique true taxonomy. The deep-fit
+composite score uses the same normalization scope as the fresh grid: deviance and
+lag-1 failure are min-max scaled within each cohort and initialization before K=2
+and K=3 are compared.
 """
     (args.output_dir / "W3_DEEP_K2_K3_STABILITY.md").write_text(
         report, encoding="utf-8"
