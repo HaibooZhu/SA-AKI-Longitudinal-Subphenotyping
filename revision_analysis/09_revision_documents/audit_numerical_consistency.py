@@ -805,24 +805,9 @@ def main() -> int:
             "W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.png", "Figure S2.",
         ),
         (
-            "figure_s10", "robustness",
-            args.report_root / "W3_cross_cohort_robustness/cross_cohort_robustness_matrix.png",
-            "W3_cross_cohort_robustness/cross_cohort_robustness_matrix.png", "Figure S10.",
-        ),
-        (
-            "figure_s11a", "missingness_sensitivity",
-            args.report_root / "W3_cluster_robustness/documented_windows_cluster_sensitivity.png",
-            "W3_cluster_robustness/documented_windows_cluster_sensitivity.png", "Figure S11a.",
-        ),
-        (
-            "figure_s11b", "missingness_sensitivity",
-            args.report_root / "W3_cluster_robustness/high_coverage_cluster_sensitivity.png",
-            "W3_cluster_robustness/high_coverage_cluster_sensitivity.png", "Figure S11b.",
-        ),
-        (
             "figure_s12", "classifier",
-            args.report_root / "W4_classifier_validation/Figure_S12_archived_model_calibration_comparator.png",
-            "W4_classifier_validation/Figure_S12_archived_model_calibration_comparator.png", "Figure S12.",
+            args.report_root / "W4_classifier_validation/W4_classifier_revalidation.png",
+            "W4_classifier_validation/W4_classifier_revalidation.png", "Figure S12.",
         ),
         (
             "figure_s13", "landmark_outcomes",

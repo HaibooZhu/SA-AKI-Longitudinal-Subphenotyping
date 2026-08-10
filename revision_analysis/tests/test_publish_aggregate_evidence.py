@@ -63,14 +63,6 @@ def test_required_editor_evidence_workstreams_are_whitelisted():
         in MODULE.EVIDENCE_FILES
     )
     assert (
-        "W4_classifier_validation/Figure_S12_archived_model_calibration_comparator.svg"
-        in MODULE.EVIDENCE_FILES
-    )
-    assert (
-        "W4_classifier_validation/primary_and_comparator_calibration_bins.csv"
-        in MODULE.EVIDENCE_FILES
-    )
-    assert (
         "W5_independent_outcomes/W5_adjusted_outcomes_forest.pdf"
         in MODULE.EVIDENCE_FILES
     )

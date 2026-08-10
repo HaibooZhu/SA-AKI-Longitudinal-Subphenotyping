@@ -14,10 +14,6 @@ from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
 
-plt.rcParams["font.family"] = "sans-serif"
-plt.rcParams["font.sans-serif"] = ["Arial", "DejaVu Sans", "Liberation Sans"]
-plt.rcParams["svg.fonttype"] = "none"
-
 
 STYLE_DIR = Path(__file__).resolve().parents[1] / "07_tables_figures"
 sys.path.insert(0, str(STYLE_DIR))
