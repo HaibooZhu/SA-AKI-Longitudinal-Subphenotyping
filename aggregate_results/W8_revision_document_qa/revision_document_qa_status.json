@@ -94,8 +94,8 @@
           "identity_method": "sha256",
           "exact_match": true,
           "embedded_relationship": "rId24",
-          "source_sha256": "4135685f96ae75e3900381b34e0b0f51d9d0210f6c47e6d6ebbcedf6e3563295",
-          "embedded_sha256": "4135685f96ae75e3900381b34e0b0f51d9d0210f6c47e6d6ebbcedf6e3563295"
+          "source_sha256": "de103349a0be6532705e72aac137ac6e5bba58876edf8522abd22a0454acee06",
+          "embedded_sha256": "de103349a0be6532705e72aac137ac6e5bba58876edf8522abd22a0454acee06"
         },
         "figure_s11b": {
           "caption_found": true,
@@ -104,8 +104,8 @@
           "identity_method": "sha256",
           "exact_match": true,
           "embedded_relationship": "rId25",
-          "source_sha256": "d46fe414dec23381aca3df3ad95360e6baa42395e6dc8d53d9a02aea184a5027",
-          "embedded_sha256": "d46fe414dec23381aca3df3ad95360e6baa42395e6dc8d53d9a02aea184a5027"
+          "source_sha256": "c25c6305cbe797cba8887143cc86148f20541b5f95b425796f902742cec665d9",
+          "embedded_sha256": "c25c6305cbe797cba8887143cc86148f20541b5f95b425796f902742cec665d9"
         },
         "figure_s12": {
           "caption_found": true,

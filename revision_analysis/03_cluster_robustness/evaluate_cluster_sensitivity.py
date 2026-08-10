@@ -41,7 +41,7 @@ PHENOTYPE = {1: "DR", 2: "RR", 3: "PW"}
 FEATURE_LABEL = {
     "bun": "BUN (mg/dL)",
     "creatinine": "Creatinine (mg/dL)",
-    "urineoutput": "Urine output (mL/6 h)",
+    "urineoutput": "Mean documented urine output\nwithin 6-h window (mL)",
     "crea_divide_basecrea": "Creatinine / baseline creatinine",
 }
 
