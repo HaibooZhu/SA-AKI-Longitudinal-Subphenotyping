@@ -1,6 +1,6 @@
 {
   "overall_status": "PASS",
-  "generated_at_utc": "2026-08-10T09:48:34.912179+00:00",
+  "generated_at_utc": "2026-08-10T10:23:52.415961+00:00",
   "figure_count": 7,
   "artifact_count": 28,
   "artifact_pass_count": 28,
@@ -27,21 +27,21 @@
     },
     "Figure S11a": {
       "status": "PASS",
-      "reviewed_png_sha256": "4135685f96ae75e3900381b34e0b0f51d9d0210f6c47e6d6ebbcedf6e3563295",
-      "current_png_sha256": "4135685f96ae75e3900381b34e0b0f51d9d0210f6c47e6d6ebbcedf6e3563295",
+      "reviewed_png_sha256": "de103349a0be6532705e72aac137ac6e5bba58876edf8522abd22a0454acee06",
+      "current_png_sha256": "de103349a0be6532705e72aac137ac6e5bba58876edf8522abd22a0454acee06",
       "hash_match": true,
       "reviewed_by": "Codex visual QA",
-      "reviewed_at": "2026-08-10T05:45:07-04:00",
+      "reviewed_at": "2026-08-10T06:23:32-04:00",
       "criteria_pass": true,
       "metadata_complete": true
     },
     "Figure S11b": {
       "status": "PASS",
-      "reviewed_png_sha256": "d46fe414dec23381aca3df3ad95360e6baa42395e6dc8d53d9a02aea184a5027",
-      "current_png_sha256": "d46fe414dec23381aca3df3ad95360e6baa42395e6dc8d53d9a02aea184a5027",
+      "reviewed_png_sha256": "c25c6305cbe797cba8887143cc86148f20541b5f95b425796f902742cec665d9",
+      "current_png_sha256": "c25c6305cbe797cba8887143cc86148f20541b5f95b425796f902742cec665d9",
       "hash_match": true,
       "reviewed_by": "Codex visual QA",
-      "reviewed_at": "2026-08-10T05:45:07-04:00",
+      "reviewed_at": "2026-08-10T06:23:32-04:00",
       "criteria_pass": true,
       "metadata_complete": true
     },
