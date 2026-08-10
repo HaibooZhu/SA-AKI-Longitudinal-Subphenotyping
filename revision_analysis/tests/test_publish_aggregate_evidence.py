@@ -51,6 +51,22 @@ def test_required_editor_evidence_workstreams_are_whitelisted():
         in MODULE.EVIDENCE_FILES
     )
     assert (
+        "W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.svg"
+        in MODULE.EVIDENCE_FILES
+    )
+    assert (
+        "W3_cluster_robustness/high_coverage_cluster_sensitivity.tiff"
+        in MODULE.EVIDENCE_FILES
+    )
+    assert (
+        "W4_classifier_validation/W4_classifier_revalidation.svg"
+        in MODULE.EVIDENCE_FILES
+    )
+    assert (
+        "W5_independent_outcomes/W5_adjusted_outcomes_forest.pdf"
+        in MODULE.EVIDENCE_FILES
+    )
+    assert (
         "W8_revision_document_qa/revision_document_qa_status.json"
         in MODULE.EVIDENCE_FILES
     )
@@ -66,6 +82,7 @@ def test_required_editor_evidence_workstreams_are_whitelisted():
         "W10_reviewer_traceability/reviewer_traceability_status.json"
         in MODULE.EVIDENCE_FILES
     )
+    assert "W11_figure_qa/figure_qa_status.json" in MODULE.EVIDENCE_FILES
 
 
 def test_workstation_paths_are_sanitized(tmp_path):

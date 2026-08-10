@@ -55,6 +55,8 @@ EVIDENCE_FILES = (
     "W3_deep_k_stability/deep_k_status.json",
     "W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.png",
     "W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.pdf",
+    "W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.svg",
+    "W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.tiff",
     "W3_cross_cohort_robustness/W3_CROSS_COHORT_SCENARIO_MANIFEST.md",
     "W3_cross_cohort_robustness/cross_cohort_scenario_manifest.csv",
     "W3_cross_cohort_robustness/W3_CROSS_COHORT_ROBUSTNESS_REFITS.md",
@@ -62,6 +64,16 @@ EVIDENCE_FILES = (
     "W3_cross_cohort_robustness/robustness_refit_status.json",
     "W3_cross_cohort_robustness/cross_cohort_robustness_matrix.png",
     "W3_cross_cohort_robustness/cross_cohort_robustness_matrix.pdf",
+    "W3_cross_cohort_robustness/cross_cohort_robustness_matrix.svg",
+    "W3_cross_cohort_robustness/cross_cohort_robustness_matrix.tiff",
+    "W3_cluster_robustness/documented_windows_cluster_sensitivity.png",
+    "W3_cluster_robustness/documented_windows_cluster_sensitivity.pdf",
+    "W3_cluster_robustness/documented_windows_cluster_sensitivity.svg",
+    "W3_cluster_robustness/documented_windows_cluster_sensitivity.tiff",
+    "W3_cluster_robustness/high_coverage_cluster_sensitivity.png",
+    "W3_cluster_robustness/high_coverage_cluster_sensitivity.pdf",
+    "W3_cluster_robustness/high_coverage_cluster_sensitivity.svg",
+    "W3_cluster_robustness/high_coverage_cluster_sensitivity.tiff",
     "W3_deep_robustness/W3_DEEP_CAUTION_RERUNS.md",
     "W3_deep_robustness/deep_robustness_seed_metrics.csv",
     "W3_deep_robustness/deep_robustness_scenario_summary.csv",
@@ -81,6 +93,10 @@ EVIDENCE_FILES = (
     "W4_classifier_validation/primary_and_comparator_calibration.csv",
     "W4_classifier_validation/paired_incremental_value.csv",
     "W4_classifier_validation/archived_replay_environment.json",
+    "W4_classifier_validation/W4_classifier_revalidation.png",
+    "W4_classifier_validation/W4_classifier_revalidation.pdf",
+    "W4_classifier_validation/W4_classifier_revalidation.svg",
+    "W4_classifier_validation/W4_classifier_revalidation.tiff",
     "W5_independent_outcomes/W5_INDEPENDENT_OUTCOMES.md",
     "W5_independent_outcomes/outcome_source_lineage.csv",
     "W5_independent_outcomes/covariate_source_verification.csv",
@@ -88,6 +104,10 @@ EVIDENCE_FILES = (
     "W5_independent_outcomes/outcome_adjusted_effects.csv",
     "W5_independent_outcomes/mortality_standardized_risks.csv",
     "W5_independent_outcomes/outcome_model_missingness.csv",
+    "W5_independent_outcomes/W5_adjusted_outcomes_forest.png",
+    "W5_independent_outcomes/W5_adjusted_outcomes_forest.pdf",
+    "W5_independent_outcomes/W5_adjusted_outcomes_forest.svg",
+    "W5_independent_outcomes/W5_adjusted_outcomes_forest.tiff",
     "W6_diuretic_exploratory/W6_DIURETIC_EXPLORATORY.md",
     "W6_diuretic_exploratory/historical_matching_spec.csv",
     "W6_diuretic_exploratory/archived_psm_balance_smd.csv",
@@ -97,12 +117,17 @@ EVIDENCE_FILES = (
     "W6_diuretic_exploratory/early_first_dose_interaction_tests.csv",
     "W6_diuretic_exploratory/W6_early_diuretic_response_forest.png",
     "W6_diuretic_exploratory/W6_early_diuretic_response_forest.pdf",
+    "W6_diuretic_exploratory/W6_early_diuretic_response_forest.svg",
+    "W6_diuretic_exploratory/W6_early_diuretic_response_forest.tiff",
     "W8_revision_document_qa/W8_REVISION_DOCUMENT_QA.md",
     "W8_revision_document_qa/revision_document_qa_status.json",
     "W9_numerical_consistency/W9_NUMERICAL_CONSISTENCY_AUDIT.md",
     "W9_numerical_consistency/numerical_consistency_status.json",
     "W10_reviewer_traceability/W10_FINAL_REVIEWER_TRACEABILITY.md",
     "W10_reviewer_traceability/reviewer_traceability_status.json",
+    "W11_figure_qa/W11_REVISION_FIGURE_QA.md",
+    "W11_figure_qa/figure_export_manifest.csv",
+    "W11_figure_qa/figure_qa_status.json",
 )
 
 
@@ -134,7 +159,7 @@ def audit_file(path: Path) -> dict[str, object]:
         if prohibited:
             raise ValueError(f"{path}: prohibited identifier keys {prohibited}")
         return {"json_valid": True}
-    if path.suffix.lower() in {".png", ".pdf"}:
+    if path.suffix.lower() in {".png", ".pdf", ".svg", ".tiff"}:
         return {
             "bytes": path.stat().st_size,
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
@@ -181,7 +206,9 @@ def main() -> int:
             "Aggregate evidence bundle is incomplete: " + ", ".join(missing)
         )
     pd.DataFrame(manifest).to_csv(
-        args.public_output / "AGGREGATE_EVIDENCE_MANIFEST.csv", index=False
+        args.public_output / "AGGREGATE_EVIDENCE_MANIFEST.csv",
+        index=False,
+        lineterminator="\n",
     )
     readme = """# Aggregate revision evidence
 

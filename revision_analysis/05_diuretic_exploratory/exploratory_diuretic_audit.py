@@ -7,14 +7,30 @@ import argparse
 import hashlib
 from itertools import combinations
 from pathlib import Path
+import sys
 
-import matplotlib as mpl
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from scipy.stats import norm
+
+
+STYLE_DIR = Path(__file__).resolve().parents[1] / "07_tables_figures"
+sys.path.insert(0, str(STYLE_DIR))
+from publication_figure_style import (  # noqa: E402
+    DOUBLE_COLUMN_IN,
+    GRID_LIGHT,
+    LINE_AUX,
+    NEUTRAL_DARK,
+    PHENOTYPE_COLORS,
+    add_panel_label,
+    apply_publication_style,
+    export_figure,
+)
 
 
 PHENOTYPE = {1: "DR", 2: "RR", 3: "PW"}
@@ -310,20 +326,16 @@ def descriptive_landmark(cohort: str, frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def plot_interactions(interactions: pd.DataFrame, out_dir: Path) -> None:
-    mpl.rcParams.update(
-        {
-            "font.family": "sans-serif",
-            "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans", "sans-serif"],
-            "svg.fonttype": "none",
-            "pdf.fonttype": 42,
-            "font.size": 7,
-            "axes.spines.right": False,
-            "axes.spines.top": False,
-            "axes.linewidth": 0.8,
-        }
+    apply_publication_style()
+    colors = PHENOTYPE_COLORS
+    fig, axes = plt.subplots(
+        1,
+        2,
+        figsize=(DOUBLE_COLUMN_IN, 3.05),
+        sharex=True,
+        sharey=True,
+        constrained_layout=True,
     )
-    colors = {"DR": "#3B6FB6", "RR": "#6A9F58", "PW": "#C7773E"}
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.0), constrained_layout=True)
     for panel, cohort in enumerate(["mimic", "aumc"]):
         ax = axes[panel]
         subset = interactions.loc[interactions.cohort == cohort]
@@ -337,24 +349,38 @@ def plot_interactions(interactions: pd.DataFrame, out_dir: Path) -> None:
                     [row.ci_high - row.adjusted_or_response_vs_nonresponse],
                 ],
                 fmt="o",
-                color=colors[phenotype],
-                capsize=2,
-                markersize=4,
-                linewidth=1,
+                color=NEUTRAL_DARK,
+                markerfacecolor="white",
+                markeredgecolor=colors[phenotype],
+                markeredgewidth=1.3,
+                ecolor=NEUTRAL_DARK,
+                capsize=2.0,
+                markersize=4.5,
+                linewidth=1.0,
             )
-        ax.axvline(1, color="#777777", linestyle="--", linewidth=0.8)
+        ax.axvline(1, color="#777777", linestyle="--", linewidth=LINE_AUX)
         ax.set_xscale("log")
+        ax.set_xlim(0.08, 12)
         ax.set_yticks(range(3), ["DR", "RR", "PW"])
-        ax.invert_yaxis()
         ax.set_xlabel("Adjusted OR for 28-day mortality\nresponse vs nonresponse (95% CI)")
-        ax.set_title(COHORT_LABEL[cohort])
-        ax.grid(axis="x", color="#DDDDDD", linewidth=0.5)
-        ax.text(-0.12, 1.06, chr(ord("a") + panel), transform=ax.transAxes, fontweight="bold", fontsize=8)
+        ax.set_title(COHORT_LABEL[cohort], fontweight="bold", pad=5)
+        ax.grid(axis="x", color=GRID_LIGHT, linewidth=0.5)
+        add_panel_label(ax, chr(ord("a") + panel))
+    # Set the shared y-axis direction once. Calling invert_yaxis() in both
+    # panels would reverse the shared axis twice and silently restore PW-first
+    # ordering.
+    axes[0].set_ylim(2.3, -0.3)
+    fig.text(
+        0.5,
+        1.005,
+        "Exploratory association · not a treatment effect",
+        ha="center",
+        va="bottom",
+        color="#666666",
+        fontsize=6.5,
+    )
     stem = out_dir / "W6_early_diuretic_response_forest"
-    fig.savefig(stem.with_suffix(".svg"), bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".tiff"), dpi=600, bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".png"), dpi=220, bbox_inches="tight")
+    export_figure(fig, stem)
     plt.close(fig)
 
 

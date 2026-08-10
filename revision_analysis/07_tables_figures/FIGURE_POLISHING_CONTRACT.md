@@ -1,0 +1,14 @@
+# JTIM revision figure-polishing contract
+
+Backend: Python (matplotlib only). Target: double-column journal artwork at 7.20 inches (approximately 183 mm), editable SVG/PDF text, 600-dpi TIFF, and a 350-dpi PNG preview.
+
+| Figure | Core conclusion | Archetype and panel evidence | Primary review risk | Visual decision |
+|---|---|---|---|---|
+| Figure S2 | K=3 support is reproducible in MIMIC-IV and AmsterdamUMCdb but remains initialization-sensitive in eICU-CRD. | Quantitative 2×3 grid: screening evidence above; deep K=2/K=3 starts below. | Unequal autoscaling or prose inside panels could overstate stability. | Shared row-wise y limits; short `Stable`/`Sensitive` status labels; selected-start counts only. |
+| Figure S10 | Scaling is robust, whereas complete follow-up and missing-data restrictions expose material sensitivity. | Quantitative bubble matrix: ARI is the hero metric; retained fraction and prespecified status are supporting encodings. | Dashboard-like cell text obscures the scientific pattern and becomes unreadable at publication width. | Color=ARI, bubble area=retained fraction, cross=CAUTION, one numeric ARI per cell. |
+| Figures S11a–b | The documented-window result preserves broad structure, while the high-coverage restriction destabilizes individual assignment and the PW component. | Quantitative 3×2 grid: agreement/confidence above; four renal trajectories below. | Probability scale, line identity, and archived-versus-sensitivity comparison must remain explicit. | Fixed phenotype colors; solid=sensitivity, dashed=archived; shared style and 0–1 probability axis. |
+| Figure S12 | External discrimination and especially calibration are materially weaker than internal performance. | Asymmetric quantitative grid: quieter confusion matrices above; larger calibration panels below. | A dark heatmap can visually dominate the clinically important calibration limitation. | Pale blue heatmap; calibration row receives more height; one shared legend. |
+| Figure S13 | DR and PW have higher adjusted mortality odds than RR, with wider uncertainty in the strict landmark analysis. | Two-panel clinical forest plot. | Repeated legends, nonparallel scales, or missing numeric estimates make cross-cohort comparison harder. | Shared log scale; direct comparison labels; compact estimate/CI text column. |
+| Figure S14 | Diuretic response associations are heterogeneous and non-causal. | Two-panel exploratory forest plot. | Treatment-colored styling could imply a causal treatment effect. | Neutral estimates with phenotype-colored outlines, explicit `Exploratory association` strip, shared log scale. |
+
+Across all panels, phenotype colors are fixed as DR blue, RR green, and PW orange. No visual change is allowed to alter source values, statistical estimates, confidence intervals, sample sizes, or pass/caution classifications.

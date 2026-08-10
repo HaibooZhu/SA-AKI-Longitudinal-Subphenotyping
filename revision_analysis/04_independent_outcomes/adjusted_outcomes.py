@@ -8,16 +8,31 @@ are written; no patient identifier is exported.
 from __future__ import annotations
 
 import argparse
+import sys
 import warnings
 from pathlib import Path
 
-import matplotlib as mpl
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from sklearn.metrics import roc_auc_score
+
+
+STYLE_DIR = Path(__file__).resolve().parents[1] / "07_tables_figures"
+sys.path.insert(0, str(STYLE_DIR))
+from publication_figure_style import (  # noqa: E402
+    DOUBLE_COLUMN_IN,
+    GRID_LIGHT,
+    LINE_AUX,
+    PHENOTYPE_COLORS,
+    add_panel_label,
+    apply_publication_style,
+    export_figure,
+)
 
 
 SEED = 20260805
@@ -574,18 +589,7 @@ def population_table(cohort: str, frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def plot_forest(effects: pd.DataFrame, out_dir: Path) -> None:
-    mpl.rcParams.update(
-        {
-            "font.family": "sans-serif",
-            "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans", "sans-serif"],
-            "svg.fonttype": "none",
-            "pdf.fonttype": 42,
-            "font.size": 7,
-            "axes.spines.right": False,
-            "axes.spines.top": False,
-            "axes.linewidth": 0.8,
-        }
-    )
+    apply_publication_style()
     panels = [
         ("mortality_28d", "overall", "28-day mortality"),
         (
@@ -594,15 +598,25 @@ def plot_forest(effects: pd.DataFrame, out_dir: Path) -> None:
             "Day 8–28 mortality: strict day-7 landmark",
         ),
     ]
-    colors = {"DR vs RR": "#3B6FB6", "PW vs RR": "#C7773E"}
-    fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.25), constrained_layout=True)
+    colors = {
+        "DR vs RR": PHENOTYPE_COLORS["DR"],
+        "PW vs RR": PHENOTYPE_COLORS["PW"],
+    }
+    fig, axes = plt.subplots(
+        1,
+        2,
+        figsize=(DOUBLE_COLUMN_IN, 3.35),
+        sharex=True,
+        sharey=True,
+        constrained_layout=True,
+    )
     y_positions = {
-        ("MIMIC-IV", "DR vs RR"): 5.2,
-        ("MIMIC-IV", "PW vs RR"): 4.8,
-        ("eICU-CRD", "DR vs RR"): 3.2,
-        ("eICU-CRD", "PW vs RR"): 2.8,
-        ("AUMC", "DR vs RR"): 1.2,
-        ("AUMC", "PW vs RR"): 0.8,
+        ("MIMIC-IV", "DR vs RR"): 5,
+        ("MIMIC-IV", "PW vs RR"): 4,
+        ("eICU-CRD", "DR vs RR"): 3,
+        ("eICU-CRD", "PW vs RR"): 2,
+        ("AUMC", "DR vs RR"): 1,
+        ("AUMC", "PW vs RR"): 0,
     }
     for panel, (outcome, population, title) in enumerate(panels):
         ax = axes[panel]
@@ -618,34 +632,34 @@ def plot_forest(effects: pd.DataFrame, out_dir: Path) -> None:
                 y,
                 xerr=[[row.adjusted_or - row.ci_low], [row.ci_high - row.adjusted_or]],
                 fmt="o",
-                markersize=4,
-                capsize=2,
-                linewidth=1,
+                markersize=4.2,
+                capsize=2.0,
+                linewidth=1.1,
                 color=colors[row.comparison],
             )
-        ax.axvline(1, color="#777777", linestyle="--", linewidth=0.8)
+        for y0, y1 in [(3.55, 5.45), (-0.45, 1.45)]:
+            ax.axhspan(y0, y1, color="#F6F6F6", zorder=0)
+        ax.axvline(1, color="#777777", linestyle="--", linewidth=LINE_AUX)
         ax.set_xscale("log")
-        ax.set_ylim(0.2, 5.8)
-        ax.set_yticks([5, 3, 1], ["MIMIC-IV", "eICU-CRD", "AUMC"])
-        ax.set_xlabel("Adjusted odds ratio (95% CI)")
-        ax.set_title(title)
-        ax.grid(axis="x", color="#DDDDDD", linewidth=0.5)
-        for comparison in ["DR vs RR", "PW vs RR"]:
-            ax.scatter([], [], color=colors[comparison], label=comparison)
-        ax.legend(loc="upper left", fontsize=6)
-        ax.text(
-            -0.12,
-            1.06,
-            chr(ord("a") + panel),
-            transform=ax.transAxes,
-            fontweight="bold",
-            fontsize=8,
+        ax.set_xlim(0.88, 16)
+        ax.set_ylim(-0.55, 5.55)
+        ax.set_yticks(
+            [5, 4, 3, 2, 1, 0],
+            [
+                "MIMIC-IV · DR",
+                "MIMIC-IV · PW",
+                "eICU-CRD · DR",
+                "eICU-CRD · PW",
+                "AUMC · DR",
+                "AUMC · PW",
+            ],
         )
+        ax.set_xlabel("Adjusted odds ratio (95% CI)")
+        ax.set_title(title, fontweight="bold", pad=5)
+        ax.grid(axis="x", color=GRID_LIGHT, linewidth=0.5)
+        add_panel_label(ax, chr(ord("a") + panel))
     stem = out_dir / "W5_adjusted_outcomes_forest"
-    fig.savefig(stem.with_suffix(".svg"), bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".tiff"), dpi=600, bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".png"), dpi=220, bbox_inches="tight")
+    export_figure(fig, stem)
     plt.close(fig)
 
 

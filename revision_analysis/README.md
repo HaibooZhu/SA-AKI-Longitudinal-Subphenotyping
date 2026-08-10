@@ -41,6 +41,7 @@ The current revision-only robustness path is intentionally separate from frozen 
 7. `summarize_deep_k_stability.py`, `summarize_deep_robustness.py`, and `summarize_uo_multiseed_sensitivity.py` require every prespecified initialization and keep failed or degenerate solutions in the denominator.
 8. `plot_k_stability_figure.py` regenerates Figure S2 from traceable K=2–5 screening evidence and the deep K=2/K=3 experiment; `verify_revision_documents.py` also requires Table S1 to match its source CSV cell for cell and verifies the embedded Figure S2 asset by SHA-256 or pixel identity.
 9. `audit_numerical_consistency.py` maps aggregate sources to manuscript, supplement, response-letter, table, and figure locations; `audit_reviewer_traceability.py` checks that every editor/reviewer item retains its original comment, response, result, limitation, change location, and evidence link.
+10. `publication_figure_style.py` fixes the journal-width typography and phenotype colors; `audit_revision_figures.py` fails closed unless Figures S2 and S10–S14 have all four required export formats and a completed visual-review record.
 
 Patient-level refit inputs and assignments are written only under
 `02_revision_outputs/intermediate/`, which is ignored by Git. Aggregate diagnostics
@@ -51,6 +52,7 @@ of identifier-free reports, tables, and figures. The publisher stops if any requ
 file is missing or if a CSV/JSON contains a prohibited patient identifier field.
 The whitelist includes the Table S3 audit, deep clustering summaries, adjusted
 outcomes, classifier validation, exploratory diuretic evidence, and final document-QA
-status, numerical-consistency status, and reviewer-traceability status, but never
+status, numerical-consistency status, reviewer-traceability status, and figure-QA
+status plus identifier-free publication assets, but never
 patient-level refit assignments, predictions, manuscripts, or detailed text-extraction
 logs.

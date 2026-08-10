@@ -106,7 +106,7 @@ python revision_analysis/07_tables_figures/regenerate_supplementary_tables.py --
 
 All public revision scripts that consume study data require the caller to supply those input paths explicitly. Generated files default to `results/`, which is ignored by Git. See [the revision workstream guide](revision_analysis/README.md) and [the input-data contract](docs/INPUT_DATA_CONTRACT.md) before running them.
 
-The published [aggregate revision evidence](aggregate_results/README.md) includes audit status files, summary tables, and the cross-cohort robustness figure. Its manifest records the exact public file set; patient-level inputs and assignments are deliberately excluded.
+The published [aggregate revision evidence](aggregate_results/README.md) includes audit status files, summary tables, and the polished revision figures in SVG, PDF, 600-dpi TIFF, and PNG formats. Its manifest records the exact public file set; patient-level inputs and assignments are deliberately excluded.
 
 ## Historical baseline entry points
 
@@ -136,7 +136,7 @@ The YAML files in `configs/` are historical templates, not the authoritative spe
 | `04_independent_outcomes/` | Estimate adjusted clinical outcome associations including onset nonrenal SOFA | Editor E.3 |
 | `05_diuretic_exploratory/` | Audit and restrict the post-exposure diuretic analysis | Editor E.4; Reviewer 1 major comment 1 |
 | `06_classifier_validation/` | Replay the archived model and compare discrimination, calibration, and incremental value with a simple model | Editor E.5; Reviewer 1 major comment 2 |
-| `07_tables_figures/` | Regenerate harmonized longitudinal supplementary tables | Data-integrity revision |
+| `07_tables_figures/` | Regenerate harmonized tables and publication figures; enforce figure export and visual-review contracts | Data-integrity and figure QA |
 | `08_literature_update/` | Archive reproducible PubMed searches used in the revision | Literature update |
 | `09_revision_documents/` | Fail-closed document, numerical-consistency, and reviewer-response traceability QA | Final submission QA |
 
@@ -162,6 +162,7 @@ Do not commit credential files, local path configuration, patient identifiers, d
 - Data-audit outputs distinguish source-data discrepancies from workbook-rendering discrepancies.
 - Table S1 is checked cell for cell against its aggregate source CSV; embedded Figure S2 is checked against the released asset by SHA-256 with a pixel-comparison fallback.
 - The final numerical audit maps aggregate source results to repeated manuscript, supplement, and response-letter locations; detailed extracted prose remains private and is not published.
+- Figure QA requires editable SVG, valid PDF, 600-dpi TIFF, and preview PNG exports for Figures S2 and S10–S14, together with a recorded visual review for readability, clipping, overlap, and color semantics.
 - Patient-level assignments and prediction files are intentionally excluded from version control; public outputs must remain aggregate-only.
 - Archived classifier replay requires the frozen legacy environment in [`environment.archived-autogluon.yml`](environment.archived-autogluon.yml), not the current package defaults.
 - Data-free unit tests run automatically in GitHub Actions; full clinical analyses require authorized local data and therefore are not executed in public CI.
