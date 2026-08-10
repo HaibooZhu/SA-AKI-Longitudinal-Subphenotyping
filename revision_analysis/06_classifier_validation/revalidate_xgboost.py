@@ -41,10 +41,6 @@ from sklearn.metrics import (
 )
 from xgboost import XGBClassifier
 
-plt.rcParams["font.family"] = "sans-serif"
-plt.rcParams["font.sans-serif"] = ["Arial", "DejaVu Sans", "Liberation Sans"]
-plt.rcParams["svg.fonttype"] = "none"
-
 
 STYLE_DIR = Path(__file__).resolve().parents[1] / "07_tables_figures"
 sys.path.insert(0, str(STYLE_DIR))
@@ -388,29 +384,18 @@ def plot_validation(
 
 
 def plot_archived_calibration_bins(bins: pd.DataFrame, out_dir: Path) -> None:
-    """Plot reviewer-facing calibration evidence from the exact-version replay."""
+    """Plot aggregate calibration bins exported by the exact-version replay."""
     apply_publication_style()
     colors = PHENOTYPE_COLORS
     models = [
-        (
-            "archived_AutoGluon_XGBoost_BAG_L2",
-            "Submitted AutoGluon XGBoost_BAG_L2\nexact-version replay",
-        ),
+        ("archived_AutoGluon_XGBoost_BAG_L2", "Archived AutoGluon XGBoost"),
         ("simple_six_variable_logistic", "Six-variable logistic comparator"),
     ]
     cohorts = [
         ("internal_MIMIC_eICU", "Internal MIMIC-IV/eICU"),
         ("external_AUMC", "External AUMC"),
     ]
-    fig, axes = plt.subplots(2, 2, figsize=(DOUBLE_COLUMN_IN, 5.9))
-    fig.subplots_adjust(
-        left=0.10,
-        right=0.985,
-        bottom=0.09,
-        top=0.83,
-        hspace=0.38,
-        wspace=0.18,
-    )
+    fig, axes = plt.subplots(2, 2, figsize=(DOUBLE_COLUMN_IN, 5.8), constrained_layout=True)
     for row, (model, model_label) in enumerate(models):
         for column, (cohort, cohort_label) in enumerate(cohorts):
             ax = axes[row, column]
@@ -441,12 +426,9 @@ def plot_archived_calibration_bins(bins: pd.DataFrame, out_dir: Path) -> None:
             for name in ["DR", "RR", "PW"]
         ],
     ]
-    fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 0.985), ncol=4)
-    for stem_name in (
-        "Figure_S12_archived_model_calibration_comparator",
-        "W4_archived_model_calibration_comparator",
-    ):
-        export_figure(fig, out_dir / stem_name)
+    fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 1.015), ncol=4)
+    stem = out_dir / "W4_archived_model_calibration_comparator"
+    export_figure(fig, stem)
     plt.close(fig)
 
 

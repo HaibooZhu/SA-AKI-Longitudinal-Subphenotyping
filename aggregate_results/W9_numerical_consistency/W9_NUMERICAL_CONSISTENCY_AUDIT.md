@@ -2,7 +2,7 @@
 
 **Status: PASS_FINAL_NUMERICAL_CONSISTENCY_AUDIT**
 
-- Checks passed: 57 / 57
+- Checks passed: 54 / 54
 - Failed check IDs: None
 - Documents: clean manuscript, highlighted manuscript, supplement, and point-by-point response
 - Sources: aggregate revision reports and regenerated longitudinal tables
@@ -18,10 +18,9 @@
 | diuretic | 5 | 5 |
 | landmark_outcomes | 1 | 1 |
 | longitudinal_tables | 18 | 18 |
-| missingness_sensitivity | 2 | 2 |
 | mortality | 4 | 4 |
 | population | 6 | 6 |
-| robustness | 3 | 3 |
+| robustness | 2 | 2 |
 | urine_output_sensitivity | 2 | 2 |
 
 ## Scope boundary

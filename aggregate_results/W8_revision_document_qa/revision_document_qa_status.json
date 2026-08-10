@@ -66,78 +66,6 @@
         "mismatches": [],
         "exact_match": true
       },
-      "figure_asset_identities": {
-        "figure_s2": {
-          "caption_found": true,
-          "source_exists": true,
-          "embedded_asset_found": true,
-          "identity_method": "sha256",
-          "exact_match": true,
-          "embedded_relationship": "rId22",
-          "source_sha256": "e3bb7ec11da9da9b789b4b48a211669886c7e711a524cb0c1be6f5789db051d6",
-          "embedded_sha256": "e3bb7ec11da9da9b789b4b48a211669886c7e711a524cb0c1be6f5789db051d6"
-        },
-        "figure_s10": {
-          "caption_found": true,
-          "source_exists": true,
-          "embedded_asset_found": true,
-          "identity_method": "sha256",
-          "exact_match": true,
-          "embedded_relationship": "rId23",
-          "source_sha256": "d7642074c9dd489558aa93eb674d41ffc73abf8c71c00e5661953c523b0c2705",
-          "embedded_sha256": "d7642074c9dd489558aa93eb674d41ffc73abf8c71c00e5661953c523b0c2705"
-        },
-        "figure_s11a": {
-          "caption_found": true,
-          "source_exists": true,
-          "embedded_asset_found": true,
-          "identity_method": "sha256",
-          "exact_match": true,
-          "embedded_relationship": "rId24",
-          "source_sha256": "de103349a0be6532705e72aac137ac6e5bba58876edf8522abd22a0454acee06",
-          "embedded_sha256": "de103349a0be6532705e72aac137ac6e5bba58876edf8522abd22a0454acee06"
-        },
-        "figure_s11b": {
-          "caption_found": true,
-          "source_exists": true,
-          "embedded_asset_found": true,
-          "identity_method": "sha256",
-          "exact_match": true,
-          "embedded_relationship": "rId25",
-          "source_sha256": "c25c6305cbe797cba8887143cc86148f20541b5f95b425796f902742cec665d9",
-          "embedded_sha256": "c25c6305cbe797cba8887143cc86148f20541b5f95b425796f902742cec665d9"
-        },
-        "figure_s12": {
-          "caption_found": true,
-          "source_exists": true,
-          "embedded_asset_found": true,
-          "identity_method": "sha256",
-          "exact_match": true,
-          "embedded_relationship": "rId26",
-          "source_sha256": "cf54a91e389684d532dc53c613378d885cb7a5c05087ba606d99a27aac5c041a",
-          "embedded_sha256": "cf54a91e389684d532dc53c613378d885cb7a5c05087ba606d99a27aac5c041a"
-        },
-        "figure_s13": {
-          "caption_found": true,
-          "source_exists": true,
-          "embedded_asset_found": true,
-          "identity_method": "sha256",
-          "exact_match": true,
-          "embedded_relationship": "rId27",
-          "source_sha256": "3f266eed4e512edc369e5765f642470f49ba91c9cb65c28ae42063b5a60bcd3f",
-          "embedded_sha256": "3f266eed4e512edc369e5765f642470f49ba91c9cb65c28ae42063b5a60bcd3f"
-        },
-        "figure_s14": {
-          "caption_found": true,
-          "source_exists": true,
-          "embedded_asset_found": true,
-          "identity_method": "sha256",
-          "exact_match": true,
-          "embedded_relationship": "rId28",
-          "source_sha256": "00078836cd7952fd60e77797fe3a424cda0e8fa708a243eb13eae2fc425bc4e7",
-          "embedded_sha256": "00078836cd7952fd60e77797fe3a424cda0e8fa708a243eb13eae2fc425bc4e7"
-        }
-      },
       "figure_s2_asset_identity": {
         "caption_found": true,
         "source_exists": true,
@@ -145,8 +73,8 @@
         "identity_method": "sha256",
         "exact_match": true,
         "embedded_relationship": "rId22",
-        "source_sha256": "e3bb7ec11da9da9b789b4b48a211669886c7e711a524cb0c1be6f5789db051d6",
-        "embedded_sha256": "e3bb7ec11da9da9b789b4b48a211669886c7e711a524cb0c1be6f5789db051d6"
+        "source_sha256": "3797ae420eaacfce8315e8ec111c6f73ed4f5122cd3ed3c3c2c7dd23b7c048f2",
+        "embedded_sha256": "3797ae420eaacfce8315e8ec111c6f73ed4f5122cd3ed3c3c2c7dd23b7c048f2"
       }
     },
     "prohibited_wording_hits": {

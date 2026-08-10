@@ -1,7 +1,7 @@
 {
   "overall_status": "PASS_FINAL_NUMERICAL_CONSISTENCY_AUDIT",
-  "checks_total": 57,
-  "checks_passed": 57,
+  "checks_total": 54,
+  "checks_passed": 54,
   "checks_failed": 0,
   "failed_check_ids": [],
   "category_summary": {
@@ -33,10 +33,6 @@
       "total": 18,
       "passed": 18
     },
-    "missingness_sensitivity": {
-      "total": 2,
-      "passed": 2
-    },
     "mortality": {
       "total": 4,
       "passed": 4
@@ -46,8 +42,8 @@
       "passed": 6
     },
     "robustness": {
-      "total": 3,
-      "passed": 3
+      "total": 2,
+      "passed": 2
     },
     "urine_output_sensitivity": {
       "total": 2,

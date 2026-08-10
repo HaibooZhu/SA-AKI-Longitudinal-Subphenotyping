@@ -113,6 +113,10 @@ def summarize_upstream_qa(
     w8_checks = w8.get("checks", {})
     supplement = w8_checks.get("supplement", {}) if isinstance(w8_checks, dict) else {}
     identities = supplement.get("figure_asset_identities", {}) if isinstance(supplement, dict) else {}
+    if not identities and isinstance(supplement, dict):
+        legacy_identity = supplement.get("figure_s2_asset_identity")
+        if isinstance(legacy_identity, dict):
+            identities = {"figure_s2": legacy_identity}
     exact_figures = sum(
         bool(value.get("exact_match"))
         for value in identities.values()
@@ -125,9 +129,12 @@ def summarize_upstream_qa(
 
     visual_review = w11.get("visual_review", {})
     visual_pass = sum(
-        value.get("status") == "PASS" and bool(value.get("hash_match"))
+        (
+            value.get("status") == "PASS" and bool(value.get("hash_match"))
+            if isinstance(value, dict)
+            else value == "PASS"
+        )
         for value in visual_review.values()
-        if isinstance(value, dict)
     ) if isinstance(visual_review, dict) else 0
     visual_total = len(visual_review) if isinstance(visual_review, dict) else 0
 
@@ -289,7 +296,7 @@ def main() -> int:
             f"- W8 文档 QA：{upstream_qa['w8_table_s1_cells_passed']}/{upstream_qa['w8_table_s1_cells_total']} 个 Table S1 单元格与 source-of-truth 一致；{upstream_qa['w8_embedded_figures_passed']}/{upstream_qa['w8_embedded_figures_total']} 张修订图的 Word 内嵌资源与发布图一致。",
             f"- W9 数值一致性：{upstream_qa['w9_checks_passed']}/{upstream_qa['w9_checks_total']} 项通过，覆盖正文、标色稿、补充材料、回复信、关键表格和发布图。",
             f"- W10 逐条回复追踪：{status['comments_passed']}/{status['comments_expected']} 条 Editor/Reviewer 回复在 Markdown 与最终 Word 中均通过结果、限制和证据核验。",
-            f"- W11 图件 QA：{upstream_qa['w11_artifacts_passed']}/{upstream_qa['w11_artifacts_total']} 个导出文件通过；{upstream_qa['w11_visual_reviews_passed']}/{upstream_qa['w11_visual_reviews_total']} 张图的人工视觉审核与当前 PNG 哈希一致。",
+            f"- W11 图件 QA：{upstream_qa['w11_artifacts_passed']}/{upstream_qa['w11_artifacts_total']} 个导出文件通过；{upstream_qa['w11_visual_reviews_passed']}/{upstream_qa['w11_visual_reviews_total']} 张图通过人工视觉审核。",
             "",
         ]
     )

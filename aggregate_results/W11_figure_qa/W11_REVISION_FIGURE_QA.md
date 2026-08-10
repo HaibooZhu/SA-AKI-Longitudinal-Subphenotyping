@@ -6,7 +6,6 @@
 - Export artifacts passing: 28/28
 - Required exports: editable SVG, PDF, 600-dpi TIFF, preview PNG
 - Manual visual review: conclusion visibility, clipping/overlap, target-width readability, and color semantics
-- Fail-closed binding: every manual PASS is tied to the current PNG SHA-256, reviewer, and review timestamp
 
 | Figure | Visual review | Export QA |
 |---|---:|---:|

@@ -21,10 +21,6 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from sklearn.metrics import roc_auc_score
 
-plt.rcParams["font.family"] = "sans-serif"
-plt.rcParams["font.sans-serif"] = ["Arial", "DejaVu Sans", "Liberation Sans"]
-plt.rcParams["svg.fonttype"] = "none"
-
 
 STYLE_DIR = Path(__file__).resolve().parents[1] / "07_tables_figures"
 sys.path.insert(0, str(STYLE_DIR))
@@ -606,16 +602,14 @@ def plot_forest(effects: pd.DataFrame, out_dir: Path) -> None:
         "DR vs RR": PHENOTYPE_COLORS["DR"],
         "PW vs RR": PHENOTYPE_COLORS["PW"],
     }
-    fig = plt.figure(figsize=(DOUBLE_COLUMN_IN, 3.55), constrained_layout=True)
-    grid = fig.add_gridspec(1, 4, width_ratios=[1.0, 0.68, 1.0, 0.68], wspace=0.05)
-    axes = []
-    text_axes = []
-    for panel in range(2):
-        shared = axes[0] if axes else None
-        ax = fig.add_subplot(grid[0, panel * 2], sharex=shared, sharey=shared)
-        text_ax = fig.add_subplot(grid[0, panel * 2 + 1], sharey=ax)
-        axes.append(ax)
-        text_axes.append(text_ax)
+    fig, axes = plt.subplots(
+        1,
+        2,
+        figsize=(DOUBLE_COLUMN_IN, 3.35),
+        sharex=True,
+        sharey=True,
+        constrained_layout=True,
+    )
     y_positions = {
         ("MIMIC-IV", "DR vs RR"): 5,
         ("MIMIC-IV", "PW vs RR"): 4,
@@ -626,7 +620,6 @@ def plot_forest(effects: pd.DataFrame, out_dir: Path) -> None:
     }
     for panel, (outcome, population, title) in enumerate(panels):
         ax = axes[panel]
-        text_ax = text_axes[panel]
         subset = effects.loc[
             effects.outcome.eq(outcome)
             & effects.analysis_population.eq(population)
@@ -644,16 +637,8 @@ def plot_forest(effects: pd.DataFrame, out_dir: Path) -> None:
                 linewidth=1.1,
                 color=colors[row.comparison],
             )
-            text_ax.text(
-                0.02,
-                y,
-                f"{row.adjusted_or:.2f} ({row.ci_low:.2f}\N{EN DASH}{row.ci_high:.2f})",
-                ha="left",
-                va="center",
-            )
         for y0, y1 in [(3.55, 5.45), (-0.45, 1.45)]:
             ax.axhspan(y0, y1, color="#F6F6F6", zorder=0)
-            text_ax.axhspan(y0, y1, color="#F6F6F6", zorder=0)
         ax.axvline(1, color="#777777", linestyle="--", linewidth=LINE_AUX)
         ax.set_xscale("log")
         ax.set_xlim(0.88, 16)
@@ -670,15 +655,9 @@ def plot_forest(effects: pd.DataFrame, out_dir: Path) -> None:
             ],
         )
         ax.set_xlabel("Adjusted odds ratio (95% CI)")
-        ax.set_title(title.replace(": ", ":\n"), fontweight="bold", pad=5)
+        ax.set_title(title, fontweight="bold", pad=5)
         ax.grid(axis="x", color=GRID_LIGHT, linewidth=0.5)
         add_panel_label(ax, chr(ord("a") + panel))
-        if panel == 1:
-            ax.tick_params(axis="y", labelleft=False)
-        text_ax.set_xlim(0, 1)
-        text_ax.set_ylim(-0.55, 5.55)
-        text_ax.set_title("OR (95% CI)", fontweight="bold", pad=5)
-        text_ax.set_axis_off()
     stem = out_dir / "W5_adjusted_outcomes_forest"
     export_figure(fig, stem)
     plt.close(fig)

@@ -15,10 +15,6 @@ from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
 
-plt.rcParams["font.family"] = "sans-serif"
-plt.rcParams["font.sans-serif"] = ["Arial", "DejaVu Sans", "Liberation Sans"]
-plt.rcParams["svg.fonttype"] = "none"
-
 
 STYLE_DIR = Path(__file__).resolve().parents[1] / "07_tables_figures"
 sys.path.insert(0, str(STYLE_DIR))
@@ -61,8 +57,8 @@ def main() -> None:
             records[(row_index, column_index)] = record
 
     apply_publication_style()
-    fig, ax = plt.subplots(figsize=(DOUBLE_COLUMN_IN, 3.35))
-    fig.subplots_adjust(left=0.18, right=0.87, top=0.96, bottom=0.32)
+    fig, ax = plt.subplots(figsize=(DOUBLE_COLUMN_IN, 3.15))
+    fig.subplots_adjust(left=0.18, right=0.87, top=0.96, bottom=0.30)
     norm = colors.Normalize(vmin=0.30, vmax=1.00)
     cmap = mpl.colormaps["Blues"]
     ax.set_xticks(range(len(SCENARIOS)), [label for _, label in SCENARIOS])
@@ -120,42 +116,41 @@ def main() -> None:
     colorbar.set_label("Adjusted Rand index")
     colorbar.outline.set_linewidth(0.6)
 
-    retained_fractions = (0.25, 0.50, 1.00)
     size_handles = [
-        ax.scatter(
+        Line2D(
             [],
             [],
-            s=80 + 310 * fraction,
-            color="#9DBAD3",
-            edgecolor="white",
-            linewidth=0.8,
+            marker="o",
+            linestyle="none",
+            markerfacecolor="#9DBAD3",
+            markeredgecolor="white",
+            markersize=size,
         )
-        for fraction in retained_fractions
+        for size in (4.0, 5.8, 8.0)
     ]
     status_handles = [
         Line2D([], [], marker="o", linestyle="none", markerfacecolor="#9DBAD3", markeredgecolor="white", markersize=6),
         Line2D([], [], marker="x", linestyle="none", color="#8A4740", markersize=5),
     ]
-    fig.legend(
+    legend_sizes = ax.legend(
         size_handles,
         ["25%", "50%", "100%"],
         title="Patients retained",
         ncol=3,
-        loc="lower left",
-        bbox_to_anchor=(0.17, 0.01),
+        loc="upper left",
+        bbox_to_anchor=(-0.01, -0.20),
         handletextpad=0.3,
         columnspacing=0.9,
-        handleheight=2.2,
-        borderpad=0.5,
         fontsize=FONT_LEGEND,
         title_fontsize=FONT_LEGEND,
     )
-    fig.legend(
+    ax.add_artist(legend_sizes)
+    ax.legend(
         status_handles,
         ["Pass", "Caution"],
         ncol=2,
-        loc="lower right",
-        bbox_to_anchor=(0.88, 0.035),
+        loc="upper right",
+        bbox_to_anchor=(1.01, -0.20),
         handletextpad=0.35,
         columnspacing=0.9,
         fontsize=FONT_LEGEND,
