@@ -48,6 +48,7 @@ secrets*
 *.pkl
 *.pickle
 *.joblib
+!revision_analysis/07_tables_figures/figure_visual_review.csv
 
 # Generated analyses and model artifacts
 outputs/

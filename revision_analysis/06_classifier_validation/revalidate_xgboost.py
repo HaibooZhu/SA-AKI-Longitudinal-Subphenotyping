@@ -16,8 +16,11 @@ import platform
 import sys
 from pathlib import Path
 
-import matplotlib as mpl
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
 import sklearn
@@ -37,6 +40,20 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from xgboost import XGBClassifier
+
+
+STYLE_DIR = Path(__file__).resolve().parents[1] / "07_tables_figures"
+sys.path.insert(0, str(STYLE_DIR))
+from publication_figure_style import (  # noqa: E402
+    DOUBLE_COLUMN_IN,
+    FONT_LEGEND,
+    LINE_AUX,
+    LINE_MAIN,
+    PHENOTYPE_COLORS,
+    add_panel_label,
+    apply_publication_style,
+    export_figure,
+)
 
 
 SEED = 1234
@@ -283,38 +300,39 @@ def original_tables(model_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
 def plot_validation(
     evaluations: dict[str, tuple[np.ndarray, np.ndarray, np.ndarray]], out_dir: Path
 ) -> None:
-    mpl.rcParams.update(
-        {
-            "font.family": "sans-serif",
-            "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans", "sans-serif"],
-            "svg.fonttype": "none",
-            "pdf.fonttype": 42,
-            "font.size": 7,
-            "axes.spines.right": False,
-            "axes.spines.top": False,
-            "axes.linewidth": 0.8,
-            "legend.frameon": False,
-        }
+    apply_publication_style()
+    colors = {group: PHENOTYPE_COLORS[name] for group, name in PHENOTYPE.items()}
+    cohort_titles = {
+        "internal_MIMIC_eICU": "Internal: MIMIC-IV + eICU-CRD",
+        "external_AUMC": "External: AmsterdamUMCdb",
+    }
+    pale_blues = LinearSegmentedColormap.from_list(
+        "jtim_classifier_blues", ["#F7F9FC", "#D5E4F0", "#8DB9D8"]
     )
-    colors = {1: "#3B6FB6", 2: "#6A9F58", 3: "#C7773E"}
-    fig, axes = plt.subplots(2, 2, figsize=(7.2, 5.4), constrained_layout=True)
+    fig, axes = plt.subplots(
+        2,
+        2,
+        figsize=(DOUBLE_COLUMN_IN, 5.4),
+        constrained_layout=True,
+        gridspec_kw={"height_ratios": [0.82, 1.18]},
+    )
     for col, (cohort, (y, pred, prob)) in enumerate(evaluations.items()):
         cm = confusion_matrix(y, pred, labels=CLASSES, normalize="true")
         ax = axes[0, col]
-        image = ax.imshow(cm, vmin=0, vmax=1, cmap="Blues")
+        image = ax.imshow(cm, vmin=0, vmax=1, cmap=pale_blues)
         for row in range(3):
             for column in range(3):
-                color = "white" if cm[row, column] > 0.55 else "black"
+                color = "white" if cm[row, column] > 0.78 else "#303030"
                 ax.text(column, row, f"{cm[row, column]:.2f}", ha="center", va="center", color=color)
         ax.set_xticks(range(3), [PHENOTYPE[x] for x in CLASSES])
         ax.set_yticks(range(3), [PHENOTYPE[x] for x in CLASSES])
         ax.set_xlabel("Predicted phenotype")
         ax.set_ylabel("Observed phenotype")
-        ax.set_title(cohort.replace("_", " "))
+        ax.set_title(cohort_titles[cohort], fontweight="bold", pad=5)
         ax.spines[:].set_visible(False)
 
         ax = axes[1, col]
-        ax.plot([0, 1], [0, 1], color="#777777", linestyle="--", linewidth=0.8, label="Ideal")
+        ax.plot([0, 1], [0, 1], color="#777777", linestyle="--", linewidth=LINE_AUX, label="Ideal")
         for idx, cls in enumerate(CLASSES):
             observed, predicted = calibration_curve(
                 (y == cls).astype(int), prob[:, idx], n_bins=10, strategy="quantile"
@@ -323,8 +341,8 @@ def plot_validation(
                 predicted,
                 observed,
                 marker="o",
-                markersize=2.8,
-                linewidth=1.0,
+                markersize=3.0,
+                linewidth=LINE_MAIN,
                 color=colors[int(cls)],
                 label=PHENOTYPE[int(cls)],
             )
@@ -332,35 +350,43 @@ def plot_validation(
         ax.set_ylim(0, 1)
         ax.set_xlabel("Predicted probability")
         ax.set_ylabel("Observed frequency")
-        ax.set_title("Calibration")
-        ax.legend(ncol=2, fontsize=6)
-    fig.colorbar(image, ax=axes[0, :], shrink=0.70, label="Row-normalized proportion")
+        ax.set_title("Calibration", pad=5)
+    colorbar = fig.colorbar(
+        image,
+        ax=axes[0, :],
+        shrink=0.68,
+        fraction=0.032,
+        pad=0.025,
+        label="Row-normalized proportion",
+    )
+    colorbar.outline.set_linewidth(0.6)
     for label, ax in zip(["a", "b", "c", "d"], axes.ravel()):
-        ax.text(-0.13, 1.08, label, transform=ax.transAxes, fontweight="bold", fontsize=8)
+        add_panel_label(ax, label)
+    shared_handles = [
+        Line2D([], [], color="#777777", linestyle="--", lw=LINE_AUX, label="Ideal"),
+        *[
+            Line2D([], [], color=colors[cls], marker="o", markersize=3, lw=LINE_MAIN, label=PHENOTYPE[cls])
+            for cls in CLASSES
+        ],
+    ]
+    fig.legend(
+        handles=shared_handles,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.505),
+        ncol=4,
+        fontsize=FONT_LEGEND,
+        columnspacing=1.0,
+        handletextpad=0.35,
+    )
     stem = out_dir / "W4_classifier_revalidation"
-    fig.savefig(stem.with_suffix(".svg"), bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".tiff"), dpi=600, bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".png"), dpi=220, bbox_inches="tight")
+    export_figure(fig, stem)
     plt.close(fig)
 
 
 def plot_archived_calibration_bins(bins: pd.DataFrame, out_dir: Path) -> None:
     """Plot aggregate calibration bins exported by the exact-version replay."""
-    mpl.rcParams.update(
-        {
-            "font.family": "sans-serif",
-            "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans", "sans-serif"],
-            "svg.fonttype": "none",
-            "pdf.fonttype": 42,
-            "font.size": 7,
-            "axes.spines.right": False,
-            "axes.spines.top": False,
-            "axes.linewidth": 0.8,
-            "legend.frameon": False,
-        }
-    )
-    colors = {"DR": "#3B6FB6", "RR": "#6A9F58", "PW": "#C7773E"}
+    apply_publication_style()
+    colors = PHENOTYPE_COLORS
     models = [
         ("archived_AutoGluon_XGBoost_BAG_L2", "Archived AutoGluon XGBoost"),
         ("simple_six_variable_logistic", "Six-variable logistic comparator"),
@@ -369,11 +395,11 @@ def plot_archived_calibration_bins(bins: pd.DataFrame, out_dir: Path) -> None:
         ("internal_MIMIC_eICU", "Internal MIMIC-IV/eICU"),
         ("external_AUMC", "External AUMC"),
     ]
-    fig, axes = plt.subplots(2, 2, figsize=(7.2, 6.2), constrained_layout=True)
+    fig, axes = plt.subplots(2, 2, figsize=(DOUBLE_COLUMN_IN, 5.8), constrained_layout=True)
     for row, (model, model_label) in enumerate(models):
         for column, (cohort, cohort_label) in enumerate(cohorts):
             ax = axes[row, column]
-            ax.plot([0, 1], [0, 1], color="#777777", linestyle="--", linewidth=0.8)
+            ax.plot([0, 1], [0, 1], color="#777777", linestyle="--", linewidth=LINE_AUX)
             subset = bins.loc[bins.model.eq(model) & bins.cohort.eq(cohort)]
             for phenotype in ["DR", "RR", "PW"]:
                 values = subset.loc[subset.phenotype.eq(phenotype)].sort_values("bin")
@@ -381,8 +407,8 @@ def plot_archived_calibration_bins(bins: pd.DataFrame, out_dir: Path) -> None:
                     values.mean_predicted,
                     values.observed_frequency,
                     marker="o",
-                    markersize=2.8,
-                    linewidth=1.0,
+                    markersize=3.0,
+                    linewidth=LINE_MAIN,
                     color=colors[phenotype],
                     label=phenotype,
                 )
@@ -391,14 +417,18 @@ def plot_archived_calibration_bins(bins: pd.DataFrame, out_dir: Path) -> None:
             ax.set_xlabel("Predicted probability")
             ax.set_ylabel("Observed frequency")
             ax.set_title(f"{model_label}\n{cohort_label}")
-            ax.legend(ncol=3, fontsize=6, loc="upper left")
     for label, ax in zip(["a", "b", "c", "d"], axes.ravel()):
-        ax.text(-0.13, 1.08, label, transform=ax.transAxes, fontweight="bold", fontsize=8)
+        add_panel_label(ax, label)
+    handles = [
+        Line2D([], [], color="#777777", linestyle="--", lw=LINE_AUX, label="Ideal"),
+        *[
+            Line2D([], [], color=colors[name], marker="o", markersize=3, lw=LINE_MAIN, label=name)
+            for name in ["DR", "RR", "PW"]
+        ],
+    ]
+    fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 1.015), ncol=4)
     stem = out_dir / "W4_archived_model_calibration_comparator"
-    fig.savefig(stem.with_suffix(".svg"), bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".tiff"), dpi=600, bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".png"), dpi=220, bbox_inches="tight")
+    export_figure(fig, stem)
     plt.close(fig)
 
 

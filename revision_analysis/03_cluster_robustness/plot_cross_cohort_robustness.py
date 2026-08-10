@@ -4,21 +4,37 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sys
 
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import colors
-from matplotlib.patches import Rectangle
+from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
 
 
+STYLE_DIR = Path(__file__).resolve().parents[1] / "07_tables_figures"
+sys.path.insert(0, str(STYLE_DIR))
+from publication_figure_style import (  # noqa: E402
+    DOUBLE_COLUMN_IN,
+    FONT_LEGEND,
+    FONT_TEXT,
+    NEUTRAL_DARK,
+    apply_publication_style,
+    export_figure,
+)
+
+
 COHORTS = [("mimic", "MIMIC-IV"), ("eicu", "eICU-CRD"), ("aumc", "AmsterdamUMCdb")]
 SCENARIOS = [
-    ("zscore_scaling", "Z-score\nscaling"),
-    ("robust_scaling", "Median/IQR\nscaling"),
-    ("exclude_documented_rrt", "Exclude documented\nRRT recipients"),
-    ("complete_30_window_followup", "Complete 30-window\nfollow-up"),
-    ("limited_forward_fill_complete_rows", "Limited forward fill +\ncomplete renal rows"),
+    ("zscore_scaling", "Z-score"),
+    ("robust_scaling", "Median/IQR"),
+    ("exclude_documented_rrt", "Exclude RRT"),
+    ("complete_30_window_followup", "Complete\nfollow-up"),
+    ("limited_forward_fill_complete_rows", "Limited fill"),
 ]
 
 
@@ -40,80 +56,107 @@ def main() -> None:
             matrix[row_index, column_index] = record.ari
             records[(row_index, column_index)] = record
 
-    fig, ax = plt.subplots(figsize=(12.4, 4.8))
-    fig.subplots_adjust(left=0.14, right=0.90, top=0.84, bottom=0.27)
+    apply_publication_style()
+    fig, ax = plt.subplots(figsize=(DOUBLE_COLUMN_IN, 3.15))
+    fig.subplots_adjust(left=0.18, right=0.87, top=0.96, bottom=0.30)
     norm = colors.Normalize(vmin=0.30, vmax=1.00)
-    image = ax.imshow(matrix, cmap="Blues", norm=norm, aspect="auto")
-    ax.set_xticks(range(len(SCENARIOS)), [label for _, label in SCENARIOS], fontsize=10)
-    ax.set_yticks(range(len(COHORTS)), [label for _, label in COHORTS], fontsize=11)
-    ax.tick_params(axis="both", length=0, pad=9)
-    ax.set_title(
-        "Cross-cohort K=3 processing sensitivity",
-        fontsize=15,
-        fontweight="bold",
-        loc="left",
-        pad=14,
-    )
+    cmap = mpl.colormaps["Blues"]
+    ax.set_xticks(range(len(SCENARIOS)), [label for _, label in SCENARIOS])
+    ax.set_yticks(range(len(COHORTS)), [label for _, label in COHORTS])
+    ax.tick_params(axis="both", length=0, pad=7)
+    ax.set_axisbelow(True)
+    ax.set_xticks(np.arange(-0.5, len(SCENARIOS), 1), minor=True)
+    ax.set_yticks(np.arange(-0.5, len(COHORTS), 1), minor=True)
+    ax.grid(which="minor", color="#EFEFEF", linewidth=0.8)
+    ax.tick_params(which="minor", bottom=False, left=False)
 
     for (row_index, column_index), record in records.items():
         caution = record.screening_threshold_status == "CAUTION"
-        annotation = (
-            f"Agreement {record.exact_agreement:.2f}\n"
-            f"ARI {record.ari:.2f}\n"
-            f"Retained {record.retained_fraction:.0%}\n"
-            f"{record.screening_threshold_status}"
+        bubble_size = 80 + 310 * float(record.retained_fraction)
+        facecolor = cmap(norm(record.ari))
+        ax.scatter(
+            column_index,
+            row_index,
+            s=bubble_size,
+            color=facecolor,
+            edgecolor="white",
+            linewidth=0.8,
+            zorder=3,
         )
-        text_color = "white" if record.ari >= 0.67 else "#102A43"
+        text_color = "white" if record.ari >= 0.68 else NEUTRAL_DARK
         ax.text(
             column_index,
             row_index,
-            annotation,
+            f"{record.ari:.2f}",
             ha="center",
             va="center",
-            fontsize=8.4,
-            fontweight="bold" if caution else "normal",
+            fontsize=FONT_TEXT,
+            fontweight="bold",
             color=text_color,
-            linespacing=1.35,
+            zorder=4,
         )
         if caution:
-            ax.add_patch(
-                Rectangle(
-                    (column_index - 0.49, row_index - 0.49),
-                    0.98,
-                    0.98,
-                    fill=False,
-                    edgecolor="#C2413A",
-                    linewidth=3.0,
-                )
+            ax.scatter(
+                column_index + 0.28,
+                row_index - 0.30,
+                marker="x",
+                s=23,
+                linewidth=1.1,
+                color="#8A4740",
+                zorder=5,
             )
 
-    for boundary in np.arange(-0.5, len(SCENARIOS), 1):
-        ax.axvline(boundary, color="white", linewidth=1.5)
-    for boundary in np.arange(-0.5, len(COHORTS), 1):
-        ax.axhline(boundary, color="white", linewidth=1.5)
     ax.set_xlim(-0.5, len(SCENARIOS) - 0.5)
     ax.set_ylim(len(COHORTS) - 0.5, -0.5)
     for spine in ax.spines.values():
         spine.set_visible(False)
 
-    colorbar = fig.colorbar(image, ax=ax, shrink=0.78, pad=0.02)
-    colorbar.set_label("Adjusted Rand index", fontsize=10)
-    colorbar.ax.tick_params(labelsize=9)
-    fig.text(
-        0.14,
-        0.04,
-        "Red border = prespecified CAUTION (agreement <0.75, ARI <0.50, or minimum cluster prevalence <0.03).",
-        fontsize=9,
-        color="#5A6470",
+    scalar = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+    colorbar = fig.colorbar(scalar, ax=ax, fraction=0.035, pad=0.025)
+    colorbar.set_label("Adjusted Rand index")
+    colorbar.outline.set_linewidth(0.6)
+
+    size_handles = [
+        Line2D(
+            [],
+            [],
+            marker="o",
+            linestyle="none",
+            markerfacecolor="#9DBAD3",
+            markeredgecolor="white",
+            markersize=size,
+        )
+        for size in (4.0, 5.8, 8.0)
+    ]
+    status_handles = [
+        Line2D([], [], marker="o", linestyle="none", markerfacecolor="#9DBAD3", markeredgecolor="white", markersize=6),
+        Line2D([], [], marker="x", linestyle="none", color="#8A4740", markersize=5),
+    ]
+    legend_sizes = ax.legend(
+        size_handles,
+        ["25%", "50%", "100%"],
+        title="Patients retained",
+        ncol=3,
+        loc="upper left",
+        bbox_to_anchor=(-0.01, -0.20),
+        handletextpad=0.3,
+        columnspacing=0.9,
+        fontsize=FONT_LEGEND,
+        title_fontsize=FONT_LEGEND,
+    )
+    ax.add_artist(legend_sizes)
+    ax.legend(
+        status_handles,
+        ["Pass", "Caution"],
+        ncol=2,
+        loc="upper right",
+        bbox_to_anchor=(1.01, -0.20),
+        handletextpad=0.35,
+        columnspacing=0.9,
+        fontsize=FONT_LEGEND,
     )
 
-    for suffix in ["png", "pdf"]:
-        fig.savefig(
-            report_dir / f"cross_cohort_robustness_matrix.{suffix}",
-            dpi=300,
-            bbox_inches="tight",
-            facecolor="white",
-        )
+    export_figure(fig, report_dir / "cross_cohort_robustness_matrix")
     plt.close(fig)
 
 

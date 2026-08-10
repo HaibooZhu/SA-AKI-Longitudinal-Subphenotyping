@@ -6,13 +6,31 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import sys
 
-import matplotlib as mpl
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
 from scipy.optimize import linear_sum_assignment
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
+
+
+STYLE_DIR = Path(__file__).resolve().parents[1] / "07_tables_figures"
+sys.path.insert(0, str(STYLE_DIR))
+from publication_figure_style import (  # noqa: E402
+    DOUBLE_COLUMN_IN,
+    FONT_LEGEND,
+    LINE_AUX,
+    LINE_MAIN,
+    PHENOTYPE_COLORS,
+    add_panel_label,
+    apply_publication_style,
+    export_figure,
+)
 
 
 PHENOTYPE = {1: "DR", 2: "RR", 3: "PW"}
@@ -61,29 +79,29 @@ def plot_results(
     trajectory: pd.DataFrame,
     result_dir: Path,
 ) -> None:
-    mpl.rcParams.update(
-        {
-            "font.family": "sans-serif",
-            "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans", "sans-serif"],
-            "svg.fonttype": "none",
-            "pdf.fonttype": 42,
-            "font.size": 7,
-            "axes.spines.right": False,
-            "axes.spines.top": False,
-            "axes.linewidth": 0.8,
-        }
+    apply_publication_style()
+    colors = {group: PHENOTYPE_COLORS[name] for group, name in PHENOTYPE.items()}
+    fig, axes = plt.subplots(
+        3,
+        2,
+        # Keep the complete six-panel figure and its caption on one landscape
+        # supplement page at the 183-mm publication width.
+        figsize=(DOUBLE_COLUMN_IN, 6.45),
+        constrained_layout=True,
+        gridspec_kw={"height_ratios": [0.92, 1.0, 1.0]},
     )
-    colors = {1: "#3B6FB6", 2: "#6A9F58", 3: "#C7773E"}
-    fig, axes = plt.subplots(3, 2, figsize=(7.2, 7.4), constrained_layout=True)
     ax = axes[0, 0]
     table = pd.crosstab(merged.original_group, merged.aligned_group).reindex(
         index=[1, 2, 3], columns=[1, 2, 3], fill_value=0
     )
     normalized = table.div(table.sum(axis=1), axis=0)
-    image = ax.imshow(normalized, vmin=0, vmax=1, cmap="Blues")
+    pale_blues = LinearSegmentedColormap.from_list(
+        "jtim_pale_blues", ["#F7F9FC", "#C5DBEC", "#6DA7CF"]
+    )
+    image = ax.imshow(normalized, vmin=0, vmax=1, cmap=pale_blues)
     for row in range(3):
         for column in range(3):
-            color = "white" if normalized.iloc[row, column] > 0.55 else "black"
+            color = "white" if normalized.iloc[row, column] > 0.70 else "#303030"
             ax.text(column, row, f"{normalized.iloc[row, column]:.2f}", ha="center", va="center", color=color)
     ax.set_xticks(range(3), [PHENOTYPE[x] for x in [1, 2, 3]])
     ax.set_yticks(range(3), [PHENOTYPE[x] for x in [1, 2, 3]])
@@ -91,18 +109,20 @@ def plot_results(
     ax.set_ylabel("Archived phenotype")
     ax.set_title("Row-normalized agreement")
     ax.spines[:].set_visible(False)
-    fig.colorbar(image, ax=ax, shrink=0.72)
+    colorbar = fig.colorbar(image, ax=ax, shrink=0.68, fraction=0.045, pad=0.04)
+    colorbar.outline.set_linewidth(0.6)
 
     ax = axes[0, 1]
     for group in [1, 2, 3]:
         values = merged.loc[merged.aligned_group == group, "max_median_probability"]
-        ax.hist(values, bins=np.linspace(0, 1, 21), histtype="step", linewidth=1.2,
+        ax.hist(values, bins=np.linspace(0, 1, 21), histtype="step", linewidth=LINE_MAIN,
                 color=colors[group], label=f"{PHENOTYPE[group]} (n={len(values)})")
-    ax.axvline(0.5, color="#777777", linestyle="--", linewidth=0.8)
-    ax.set_xlabel("Maximum posterior median membership probability")
+    ax.axvline(0.5, color="#777777", linestyle="--", linewidth=LINE_AUX)
+    ax.set_xlim(0, 1.02)
+    ax.set_xlabel("Maximum posterior membership probability")
     ax.set_ylabel("Patients")
     ax.set_title("Assignment confidence")
-    ax.legend(fontsize=6)
+    ax.legend(fontsize=FONT_LEGEND, loc="upper left")
 
     features = ["bun", "creatinine", "urineoutput", "crea_divide_basecrea"]
     for position, feature in enumerate(features):
@@ -116,20 +136,29 @@ def plot_results(
                 trajectory.loc[trajectory.original_group == group]
                 .groupby("time")[feature].mean()
             )
-            ax.plot(sensitivity.index, sensitivity.values, color=colors[group], linewidth=1.2,
-                    marker="o", markersize=2.5, label=f"{PHENOTYPE[group]} sensitivity")
-            ax.plot(archived.index, archived.values, color=colors[group], linewidth=0.8,
+            ax.plot(sensitivity.index, sensitivity.values, color=colors[group], linewidth=LINE_MAIN,
+                    marker="o", markersize=2.4, label=f"{PHENOTYPE[group]} sensitivity")
+            ax.plot(archived.index, archived.values, color=colors[group], linewidth=LINE_AUX,
                     linestyle="--", alpha=0.75)
         ax.set_xlabel("6-h window relative to SA-AKI onset")
         ax.set_ylabel(FEATURE_LABEL[feature])
         ax.set_title(FEATURE_LABEL[feature])
     for label, axis in zip(["a", "b", "c", "d", "e", "f"], axes.ravel()):
-        axis.text(-0.13, 1.07, label, transform=axis.transAxes, fontweight="bold", fontsize=8)
+        add_panel_label(axis, label)
+    style_handles = [
+        Line2D([], [], color="#666666", lw=LINE_MAIN, marker="o", markersize=3, label="Sensitivity"),
+        Line2D([], [], color="#888888", lw=LINE_AUX, ls="--", label="Archived"),
+    ]
+    fig.legend(
+        handles=style_handles,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.012),
+        ncol=2,
+        columnspacing=1.1,
+        handlelength=2.0,
+    )
     stem = result_dir / f"{scenario}_cluster_sensitivity"
-    fig.savefig(stem.with_suffix(".svg"), bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".pdf"), bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".tiff"), dpi=600, bbox_inches="tight")
-    fig.savefig(stem.with_suffix(".png"), dpi=220, bbox_inches="tight")
+    export_figure(fig, stem)
     plt.close(fig)
 
 

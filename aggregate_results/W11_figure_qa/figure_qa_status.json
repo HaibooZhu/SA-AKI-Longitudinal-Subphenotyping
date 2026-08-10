@@ -1,0 +1,28 @@
+{
+  "overall_status": "PASS",
+  "generated_at_utc": "2026-08-10T09:16:20.854972+00:00",
+  "figure_count": 7,
+  "artifact_count": 28,
+  "artifact_pass_count": 28,
+  "visual_review": {
+    "Figure S2": "PASS",
+    "Figure S10": "PASS",
+    "Figure S11a": "PASS",
+    "Figure S11b": "PASS",
+    "Figure S12": "PASS",
+    "Figure S13": "PASS",
+    "Figure S14": "PASS"
+  },
+  "criteria": {
+    "formats": [
+      "svg",
+      "pdf",
+      "tiff",
+      "png"
+    ],
+    "minimum_raster_short_edge_px": 1000,
+    "minimum_tiff_dpi": 590,
+    "maximum_vector_width_in": 7.6,
+    "svg_text_must_remain_editable": true
+  }
+}

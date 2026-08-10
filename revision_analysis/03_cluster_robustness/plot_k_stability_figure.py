@@ -5,15 +5,32 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import sys
 
-import matplotlib as mpl
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
 
 
+STYLE_DIR = Path(__file__).resolve().parents[1] / "07_tables_figures"
+sys.path.insert(0, str(STYLE_DIR))
+from publication_figure_style import (  # noqa: E402
+    DOUBLE_COLUMN_IN,
+    FONT_LEGEND,
+    K_COLORS,
+    LINE_AUX,
+    LINE_MAIN,
+    STATUS_COLORS,
+    add_panel_label,
+    apply_publication_style,
+    export_figure,
+)
+
+
 COHORTS = (("mimic", "MIMIC-IV"), ("eicu", "eICU-CRD"), ("aumc", "AmsterdamUMCdb"))
-COLORS = {2: "#3B6FB6", 3: "#C7773E", 4: "#8C8C8C", 5: "#B8B8B8"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -63,25 +80,18 @@ def main() -> int:
     validate_grid(fresh, {2, 3, 4, 5})
     validate_grid(deep, {2, 3})
 
-    mpl.rcParams.update(
-        {
-            "font.family": "sans-serif",
-            "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
-            "font.size": 7.5,
-            "axes.titlesize": 9,
-            "axes.labelsize": 8,
-            "xtick.labelsize": 7,
-            "ytick.labelsize": 7,
-            "legend.fontsize": 6.5,
-            "axes.spines.top": False,
-            "axes.spines.right": False,
-            "pdf.fonttype": 42,
-            "ps.fonttype": 42,
-            "svg.fonttype": "none",
-        }
+    apply_publication_style()
+    fig, axes = plt.subplots(
+        2,
+        3,
+        figsize=(DOUBLE_COLUMN_IN, 5.0),
+        sharey="row",
+        constrained_layout=True,
+        gridspec_kw={"height_ratios": [1.0, 0.92]},
     )
-    fig, axes = plt.subplots(2, 3, figsize=(7.4, 5.2), constrained_layout=True)
     rng = np.random.default_rng(20260809)
+    upper_limit = max(1.48, float(fresh.historical_selection_score.max()) + 0.10)
+    lower_limit = max(1.48, float(deep.deep_selection_score.max()) + 0.10)
 
     for column, (cohort, label) in enumerate(COHORTS):
         upper = axes[0, column]
@@ -94,8 +104,8 @@ def main() -> int:
             upper.scatter(
                 np.full(len(values), k) + jitter,
                 values,
-                s=22,
-                color=COLORS[k],
+                s=19,
+                color=K_COLORS[k],
                 edgecolor="white",
                 linewidth=0.45,
                 zorder=3,
@@ -104,7 +114,7 @@ def main() -> int:
                 [k - 0.16, k + 0.16],
                 [np.median(values), np.median(values)],
                 color="#202020",
-                linewidth=1.1,
+                linewidth=LINE_MAIN,
                 zorder=4,
             )
             selected = int(
@@ -114,13 +124,22 @@ def main() -> int:
                 ].iloc[0]
             )
             if selected:
-                upper.text(k, max(values) + 0.10, f"selected {selected}/3", ha="center", va="bottom", fontsize=6.2)
-        upper.set_title(label, fontweight="bold")
+                upper.text(
+                    k,
+                    max(values) + 0.06,
+                    f"{selected}/3",
+                    ha="center",
+                    va="bottom",
+                    fontsize=FONT_LEGEND,
+                    color="#555555",
+                )
+        upper.set_title(label, fontweight="bold", pad=5)
         upper.set_xticks([2, 3, 4, 5])
-        upper.set_xlabel("Candidate components (K)")
+        upper.set_xlabel("Components, K")
         upper.set_ylabel("Screening composite score\n(lower is preferred)" if column == 0 else "")
-        upper.grid(axis="y", color="#E5E5E5", linewidth=0.6)
-        upper.text(-0.17, 1.08, chr(ord("a") + column), transform=upper.transAxes, fontweight="bold", fontsize=9)
+        upper.set_ylim(-0.06, upper_limit)
+        upper.grid(axis="y", color="#E8E8E8", linewidth=LINE_AUX)
+        add_panel_label(upper, chr(ord("a") + column))
 
         lower = axes[1, column]
         d_cohort = deep.loc[deep.cohort.eq(cohort)].copy()
@@ -130,7 +149,7 @@ def main() -> int:
                 seed_frame.K,
                 seed_frame.deep_selection_score,
                 color="#9A9A9A",
-                linewidth=0.8,
+                linewidth=LINE_AUX,
                 alpha=0.8,
                 zorder=1,
             )
@@ -138,45 +157,48 @@ def main() -> int:
                 lower.scatter(
                     row.K,
                     row.deep_selection_score,
-                    s=28,
-                    color=COLORS[int(row.K)],
+                    s=24,
+                    color=K_COLORS[int(row.K)],
                     edgecolor="white",
                     linewidth=0.5,
                     zorder=3,
                 )
         status = str(deep_summary.loc[cohort, "k3_cross_seed_status"])
-        status_label = (
-            "K=3 reproduced in all 3 starts"
-            if status == "PASS_ALL_3_INITIALIZATIONS"
-            else "Initialization sensitivity remains"
-        )
+        stable = status == "PASS_ALL_3_INITIALIZATIONS"
+        status_label = "Stable" if stable else "Sensitive"
         lower.text(
-            0.5,
-            0.96,
+            0.03,
+            0.95,
             status_label,
             transform=lower.transAxes,
-            ha="center",
+            ha="left",
             va="top",
-            fontsize=6.4,
-            color="#2E5D34" if status.startswith("PASS") else "#8B3A3A",
+            fontsize=FONT_LEGEND,
+            fontweight="bold",
+            color=STATUS_COLORS["PASS" if stable else "CAUTION"],
         )
         lower.set_xticks([2, 3])
         lower.set_xlim(1.75, 3.25)
-        lower.set_xlabel("Candidate components (K)")
+        lower.set_xlabel("Components, K")
         lower.set_ylabel("Deep-fit composite score\n(lower is preferred)" if column == 0 else "")
-        lower.grid(axis="y", color="#E5E5E5", linewidth=0.6)
-        lower.text(-0.17, 1.08, chr(ord("d") + column), transform=lower.transAxes, fontweight="bold", fontsize=9)
+        lower.set_ylim(-0.06, lower_limit)
+        lower.grid(axis="y", color="#E8E8E8", linewidth=LINE_AUX)
+        add_panel_label(lower, chr(ord("d") + column))
 
-    fig.suptitle(
-        "Traceable screening K=2–5 grid and prespecified deep K=2 versus K=3 stability",
-        fontsize=10,
-        fontweight="bold",
+    handles = [
+        Line2D([], [], marker="o", linestyle="none", color=K_COLORS[k], label=f"K={k}")
+        for k in (2, 3, 4, 5)
+    ]
+    fig.legend(
+        handles=handles,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.015),
+        ncol=4,
+        columnspacing=1.0,
+        handletextpad=0.3,
     )
     args.output_stem.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(args.output_stem.with_suffix(".pdf"), bbox_inches="tight")
-    fig.savefig(args.output_stem.with_suffix(".svg"), bbox_inches="tight")
-    fig.savefig(args.output_stem.with_suffix(".png"), dpi=350, bbox_inches="tight", facecolor="white")
-    fig.savefig(args.output_stem.with_suffix(".tiff"), dpi=600, bbox_inches="tight")
+    export_figure(fig, args.output_stem)
     plt.close(fig)
     print(args.output_stem)
     return 0

@@ -73,8 +73,8 @@
         "identity_method": "sha256",
         "exact_match": true,
         "embedded_relationship": "rId22",
-        "source_sha256": "5f2959be4e6f6886c048dafbe930aa06b4fd80932297b598e9ea5b5a537b9245",
-        "embedded_sha256": "5f2959be4e6f6886c048dafbe930aa06b4fd80932297b598e9ea5b5a537b9245"
+        "source_sha256": "3797ae420eaacfce8315e8ec111c6f73ed4f5122cd3ed3c3c2c7dd23b7c048f2",
+        "embedded_sha256": "3797ae420eaacfce8315e8ec111c6f73ed4f5122cd3ed3c3c2c7dd23b7c048f2"
       }
     },
     "prohibited_wording_hits": {
