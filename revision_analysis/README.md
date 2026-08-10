@@ -18,7 +18,7 @@ _Version-controlled code and documentation for all analyses added during the JTI
 | `06_classifier_validation/` | Balanced performance, calibration and leakage checks | E.5, R1-M2 |
 | `07_tables_figures/` | Scripted regeneration of revision tables and figures | All analytical comments |
 | `08_literature_update/` | Reproducible PubMed search and literature-screening records | R1-m2 |
-| `09_revision_documents/` | Rebuild and fail-closed QA of response, manuscript, supplement, and presentation files | All comments |
+| `09_revision_documents/` | Fail-closed document, numerical-consistency, and reviewer-traceability QA | All comments |
 
 ## ✍️ File conventions
 
@@ -39,7 +39,8 @@ The current revision-only robustness path is intentionally separate from frozen 
 5. `summarize_robustness_refits.py` aligns numeric labels before calculating agreement, ARI, NMI, cluster prevalence, and posterior uncertainty.
 6. `launch_deep_refits.sh` runs the prespecified 42-fit confirmation grid in a separate environment: 18 K=2/K=3 primary fits, 18 reruns of all screening-depth CAUTION scenarios, and 6 eICU urine-documentation fits.
 7. `summarize_deep_k_stability.py`, `summarize_deep_robustness.py`, and `summarize_uo_multiseed_sensitivity.py` require every prespecified initialization and keep failed or degenerate solutions in the denominator.
-8. `plot_k_stability_figure.py` regenerates Figure S2 from traceable K=2–5 screening evidence and the deep K=2/K=3 experiment; `verify_revision_documents.py` fails if Table S1 contains K=6–8 or Figure S2 is duplicated.
+8. `plot_k_stability_figure.py` regenerates Figure S2 from traceable K=2–5 screening evidence and the deep K=2/K=3 experiment; `verify_revision_documents.py` also requires Table S1 to match its source CSV cell for cell and verifies the embedded Figure S2 asset by SHA-256 or pixel identity.
+9. `audit_numerical_consistency.py` maps aggregate sources to manuscript, supplement, response-letter, table, and figure locations; `audit_reviewer_traceability.py` checks that every editor/reviewer item retains its original comment, response, result, limitation, change location, and evidence link.
 
 Patient-level refit inputs and assignments are written only under
 `02_revision_outputs/intermediate/`, which is ignored by Git. Aggregate diagnostics
@@ -50,4 +51,6 @@ of identifier-free reports, tables, and figures. The publisher stops if any requ
 file is missing or if a CSV/JSON contains a prohibited patient identifier field.
 The whitelist includes the Table S3 audit, deep clustering summaries, adjusted
 outcomes, classifier validation, exploratory diuretic evidence, and final document-QA
-status, but never patient-level refit assignments or predictions.
+status, numerical-consistency status, and reviewer-traceability status, but never
+patient-level refit assignments, predictions, manuscripts, or detailed text-extraction
+logs.

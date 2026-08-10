@@ -99,6 +99,10 @@ EVIDENCE_FILES = (
     "W6_diuretic_exploratory/W6_early_diuretic_response_forest.pdf",
     "W8_revision_document_qa/W8_REVISION_DOCUMENT_QA.md",
     "W8_revision_document_qa/revision_document_qa_status.json",
+    "W9_numerical_consistency/W9_NUMERICAL_CONSISTENCY_AUDIT.md",
+    "W9_numerical_consistency/numerical_consistency_status.json",
+    "W10_reviewer_traceability/W10_FINAL_REVIEWER_TRACEABILITY.md",
+    "W10_reviewer_traceability/reviewer_traceability_status.json",
 )
 
 

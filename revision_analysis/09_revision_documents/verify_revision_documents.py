@@ -4,11 +4,16 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import io
 import json
 import re
 from pathlib import Path
 
+import pandas as pd
 from docx import Document
+from docx.oxml.ns import qn
+from PIL import Image, ImageChops
 
 
 REQUIRED_FILES = (
@@ -86,6 +91,22 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=analysis / "02_revision_outputs/reports/W8_revision_document_qa",
     )
+    parser.add_argument(
+        "--fresh-k-summary",
+        type=Path,
+        default=(
+            analysis
+            / "02_revision_outputs/reports/W3_fresh_k_grid/fresh_k_grid_summary.csv"
+        ),
+    )
+    parser.add_argument(
+        "--figure-s2-source",
+        type=Path,
+        default=(
+            analysis
+            / "02_revision_outputs/reports/W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.png"
+        ),
+    )
     return parser.parse_args()
 
 
@@ -128,7 +149,160 @@ def required_content_checks(text: str) -> dict[str, bool]:
     }
 
 
-def supplement_checks(path: Path) -> dict[str, object]:
+def render_table_value(value: object) -> str:
+    if pd.isna(value):
+        return ""
+    if isinstance(value, float):
+        return f"{value:.3f}"
+    return str(value)
+
+
+def expected_table_s1(source_path: Path) -> list[list[str]]:
+    frame = pd.read_csv(source_path)[
+        [
+            "cohort",
+            "K",
+            "seeds_completed",
+            "mean_deviance",
+            "mean_high_absolute_lag1_fraction",
+            "selections_across_three_seeds",
+        ]
+    ].copy()
+    frame["cohort"] = frame["cohort"].map(
+        {"mimic": "MIMIC-IV", "eicu": "eICU-CRD", "aumc": "AmsterdamUMCdb"}
+    )
+    frame.columns = [
+        "Dataset",
+        "Clusters (K)",
+        "Seeds",
+        "Mean deviance",
+        "Mean high |lag-1| fraction",
+        "Selections / 3 seeds",
+    ]
+    return [list(frame.columns)] + [
+        [render_table_value(value) for value in row]
+        for row in frame.itertuples(index=False, name=None)
+    ]
+
+
+def compare_table_s1_to_source(table, source_path: Path) -> dict[str, object]:
+    expected = expected_table_s1(source_path)
+    observed = [
+        [cell.text.strip() for cell in row.cells]
+        for row in table.rows
+    ]
+    mismatches: list[dict[str, object]] = []
+    maximum_rows = max(len(expected), len(observed))
+    for row_index in range(maximum_rows):
+        expected_row = expected[row_index] if row_index < len(expected) else []
+        observed_row = observed[row_index] if row_index < len(observed) else []
+        maximum_columns = max(len(expected_row), len(observed_row))
+        for column_index in range(maximum_columns):
+            expected_value = (
+                expected_row[column_index] if column_index < len(expected_row) else None
+            )
+            observed_value = (
+                observed_row[column_index] if column_index < len(observed_row) else None
+            )
+            if expected_value != observed_value:
+                mismatches.append(
+                    {
+                        "row": row_index,
+                        "column": column_index,
+                        "expected": expected_value,
+                        "observed": observed_value,
+                    }
+                )
+    return {
+        "source_exists": source_path.exists(),
+        "expected_rows": len(expected),
+        "observed_rows": len(observed),
+        "expected_cells": sum(len(row) for row in expected),
+        "observed_cells": sum(len(row) for row in observed),
+        "mismatch_count": len(mismatches),
+        "mismatches": mismatches,
+        "exact_match": not mismatches and len(expected) == len(observed),
+    }
+
+
+def figure_asset_identity(
+    document: Document,
+    caption_prefix: str,
+    source_path: Path,
+) -> dict[str, object]:
+    caption_index = next(
+        (
+            index
+            for index, paragraph in enumerate(document.paragraphs)
+            if paragraph.text.strip().startswith(caption_prefix)
+        ),
+        None,
+    )
+    result: dict[str, object] = {
+        "caption_found": caption_index is not None,
+        "source_exists": source_path.exists(),
+        "embedded_asset_found": False,
+        "identity_method": None,
+        "exact_match": False,
+    }
+    if caption_index is None or not source_path.exists():
+        return result
+
+    embedded_blob: bytes | None = None
+    embedded_relationship: str | None = None
+    for paragraph in reversed(document.paragraphs[:caption_index]):
+        blips = paragraph._p.xpath(".//a:blip")
+        if not blips:
+            continue
+        embedded_relationship = blips[-1].get(qn("r:embed"))
+        if embedded_relationship in document.part.related_parts:
+            embedded_blob = document.part.related_parts[embedded_relationship].blob
+        break
+    if embedded_blob is None:
+        return result
+
+    source_blob = source_path.read_bytes()
+    source_sha256 = hashlib.sha256(source_blob).hexdigest()
+    embedded_sha256 = hashlib.sha256(embedded_blob).hexdigest()
+    result.update(
+        {
+            "embedded_asset_found": True,
+            "embedded_relationship": embedded_relationship,
+            "source_sha256": source_sha256,
+            "embedded_sha256": embedded_sha256,
+        }
+    )
+    if source_sha256 == embedded_sha256:
+        result["identity_method"] = "sha256"
+        result["exact_match"] = True
+        return result
+
+    try:
+        source_image = Image.open(io.BytesIO(source_blob)).convert("RGBA")
+        embedded_image = Image.open(io.BytesIO(embedded_blob)).convert("RGBA")
+        dimensions_match = source_image.size == embedded_image.size
+        pixels_match = dimensions_match and ImageChops.difference(
+            source_image, embedded_image
+        ).getbbox() is None
+        result.update(
+            {
+                "identity_method": "pixel_comparison",
+                "source_dimensions": list(source_image.size),
+                "embedded_dimensions": list(embedded_image.size),
+                "pixels_match": pixels_match,
+                "exact_match": pixels_match,
+            }
+        )
+    except Exception as exc:  # pragma: no cover - defensive reporting path
+        result["pixel_comparison_error"] = str(exc)
+    return result
+
+
+def supplement_checks(
+    path: Path,
+    fresh_k_summary: Path | None = None,
+    figure_s2_source: Path | None = None,
+) -> dict[str, object]:
     document = Document(path)
     figure_s2_captions = [
         paragraph.text.strip()
@@ -167,7 +341,7 @@ def supplement_checks(path: Path) -> dict[str, object]:
     k3_counts = [
         selection_annotations.get(f"{cohort}:K3") for cohort in expected_datasets
     ]
-    return {
+    result: dict[str, object] = {
         "figure_s2_caption_count": len(figure_s2_captions),
         "figure_s2_captions": figure_s2_captions,
         "table_s1_k_values": k_values,
@@ -180,6 +354,22 @@ def supplement_checks(path: Path) -> dict[str, object]:
         "table_s1_eicu_k3_not_unanimous": selection_annotations.get("eICU-CRD:K3") != 3,
         "table_s1_k3_not_unanimous_across_cohorts": not all(value == 3 for value in k3_counts),
     }
+    if fresh_k_summary is not None:
+        if fresh_k_summary.exists():
+            result["table_s1_source_identity"] = compare_table_s1_to_source(
+                table_s1, fresh_k_summary
+            )
+        else:
+            result["table_s1_source_identity"] = {
+                "source_exists": False,
+                "exact_match": False,
+                "mismatch_count": None,
+            }
+    if figure_s2_source is not None:
+        result["figure_s2_asset_identity"] = figure_asset_identity(
+            document, "Figure S2.", figure_s2_source
+        )
+    return result
 
 
 def main() -> int:
@@ -193,7 +383,11 @@ def main() -> int:
 
     supplement_path = args.package_dir / "JTIM_Revised_Supplementary_material.docx"
     if supplement_path.exists():
-        supplement = supplement_checks(supplement_path)
+        supplement = supplement_checks(
+            supplement_path,
+            fresh_k_summary=args.fresh_k_summary,
+            figure_s2_source=args.figure_s2_source,
+        )
         checks["supplement"] = supplement
         if supplement["figure_s2_caption_count"] != 1:
             failures.append("Figure S2 must have exactly one caption")
@@ -207,6 +401,10 @@ def main() -> int:
             failures.append("Table S1 must not mark eICU K=3 as unanimously selected")
         if not supplement["table_s1_k3_not_unanimous_across_cohorts"]:
             failures.append("Table S1 must not imply unanimous K=3 selection across cohorts")
+        if not supplement.get("table_s1_source_identity", {}).get("exact_match", False):
+            failures.append("Table S1 must match fresh_k_grid_summary.csv cell for cell")
+        if not supplement.get("figure_s2_asset_identity", {}).get("exact_match", False):
+            failures.append("Embedded Figure S2 must match the released Figure S2 asset")
 
     wording_hits: dict[str, list[str]] = {}
     for name in WORDING_FILES:
@@ -249,6 +447,8 @@ def main() -> int:
 - Figure S2 caption count: {checks.get('supplement', {}).get('figure_s2_caption_count', 'not checked')}
 - Table S1 restricted to traceable K=2–5 across all three cohorts: {checks.get('supplement', {}).get('table_s1_has_only_k2_k5', False)}
 - Table S1 includes seed-level selection annotations and does not mark eICU K=3 as unanimous: {checks.get('supplement', {}).get('table_s1_selection_annotation_present', False) and checks.get('supplement', {}).get('table_s1_eicu_k3_not_unanimous', False)}
+- Table S1 matches the source CSV cell for cell: {checks.get('supplement', {}).get('table_s1_source_identity', {}).get('exact_match', False)}
+- Embedded Figure S2 matches the released asset: {checks.get('supplement', {}).get('figure_s2_asset_identity', {}).get('exact_match', False)}
 - Prohibited legacy claims detected: {sum(len(value) for value in wording_hits.values())}
 - Required scientific content checks passed: {all(all(values.values()) for values in required_content.values()) if required_content else False}
 

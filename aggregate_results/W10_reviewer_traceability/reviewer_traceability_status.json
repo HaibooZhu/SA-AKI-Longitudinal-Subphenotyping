@@ -1,0 +1,16 @@
+{
+  "overall_status": "PASS_FINAL_REVIEWER_TRACEABILITY",
+  "comments_expected": 15,
+  "comments_passed": 15,
+  "comments_failed": 0,
+  "failed_comments": [],
+  "missing_sections": [],
+  "extra_markdown_sections": [],
+  "submission_readiness": "needs_author_input",
+  "author_actions": [
+    "approve the final scientific wording, including all transparently reported negative or cautionary findings",
+    "confirm author list, affiliations, corresponding-author details, and the response-letter signatory",
+    "confirm journal-system metadata and upload-file designations",
+    "add final page/line numbers only if the journal specifically requires them after pagination is frozen"
+  ]
+}

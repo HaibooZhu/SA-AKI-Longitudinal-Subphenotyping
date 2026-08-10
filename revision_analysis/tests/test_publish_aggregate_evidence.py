@@ -50,6 +50,22 @@ def test_required_editor_evidence_workstreams_are_whitelisted():
         "W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.pdf"
         in MODULE.EVIDENCE_FILES
     )
+    assert (
+        "W8_revision_document_qa/revision_document_qa_status.json"
+        in MODULE.EVIDENCE_FILES
+    )
+    assert (
+        "W9_numerical_consistency/numerical_consistency_status.json"
+        in MODULE.EVIDENCE_FILES
+    )
+    assert (
+        "W9_numerical_consistency/numerical_consistency_checks.csv"
+        not in MODULE.EVIDENCE_FILES
+    )
+    assert (
+        "W10_reviewer_traceability/reviewer_traceability_status.json"
+        in MODULE.EVIDENCE_FILES
+    )
 
 
 def test_workstation_paths_are_sanitized(tmp_path):

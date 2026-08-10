@@ -17,7 +17,7 @@ jobs:
         run: >-
           python -m pip install
           pytest pandas numpy scipy scikit-learn matplotlib seaborn statsmodels
-          openpyxl pyyaml imbalanced-learn xgboost python-docx
+          openpyxl pyyaml imbalanced-learn xgboost python-docx pillow
       - name: Run baseline and revision unit tests
         env:
           PYTHONPATH: src
