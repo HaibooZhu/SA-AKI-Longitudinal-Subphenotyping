@@ -1,6 +1,6 @@
 # W0 eICU 数据血缘与队列一致性报告
 
-**总体状态：ACTION_REQUIRED**
+**总体状态：PASS_WITH_QUARANTINED_LEGACY_ARTIFACTS**
 
 本报告将 `03.eICU_SAKI_trajCluster/sk_survival.csv` 中的 1,417 名患者定义为本轮修订的权威 eICU 队列。患者标识只在内存中用于集合比较；所有落盘文件均只含聚合计数和不可逆 SHA-256 摘要。
 

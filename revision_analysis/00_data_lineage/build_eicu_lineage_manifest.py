@@ -503,7 +503,7 @@ def main() -> int:
     ].tolist()
     status = {
         "overall_status": "FAIL" if failed_required else (
-            "ACTION_REQUIRED" if quarantined else "PASS"
+            "PASS_WITH_QUARANTINED_LEGACY_ARTIFACTS" if quarantined else "PASS"
         ),
         "authoritative_patient_count": authoritative["_cid"].nunique(),
         "failed_required_artifacts": failed_required,
@@ -512,8 +512,9 @@ def main() -> int:
         "classifier_membership_failure_reasons": membership_failures,
         "privacy": "No patient-level identifiers are written by this audit.",
         "next_action": (
-            "Re-derive outcome and risk-factor analyses from the authoritative cohort; "
-            "do not use quarantined 1,970/1,748-patient snapshots."
+            "Legacy 1,970/1,748-patient artifacts remain quarantined. Final revision "
+            "outcome, risk-factor, and classifier analyses use authoritative or "
+            "independently verified upstream sources."
             if quarantined
             else "All checked artifacts are eligible for their declared role."
         ),

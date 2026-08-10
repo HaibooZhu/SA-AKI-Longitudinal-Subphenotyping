@@ -1,0 +1,16 @@
+{
+  "overall_status": "UO_MULTI_SEED_SENSITIVITY_CAUTIONS_REMAIN",
+  "expected_fits": 6,
+  "observed_fits": 6,
+  "all_prespecified_seeds_retained": true,
+  "scenario_status": [
+    {
+      "scenario": "documented_windows",
+      "scenario_status": "PASS_ALL_3_INITIALIZATIONS"
+    },
+    {
+      "scenario": "high_coverage",
+      "scenario_status": "CAUTION_DOCUMENTATION_SELECTION_OR_MODE_SENSITIVITY"
+    }
+  ]
+}

@@ -84,3 +84,9 @@ def test_classifier_frame_reports_ambiguous_and_unknown_ids(tmp_path, monkeypatc
     assert diagnostics["ambiguous_feature_ids"] == 1
     assert diagnostics["unknown_internal_split_ids"] == 1
     assert eicu["_cid"].nunique() == 2
+
+
+def test_completed_lineage_does_not_leave_action_required_status():
+    source = MODULE_PATH.read_text(encoding="utf-8")
+    assert '"ACTION_REQUIRED" if quarantined' not in source
+    assert "PASS_WITH_QUARANTINED_LEGACY_ARTIFACTS" in source

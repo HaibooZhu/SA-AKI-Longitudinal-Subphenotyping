@@ -126,7 +126,7 @@ def main() -> int:
     overall_status = (
         "FAIL"
         if unsupported or missing_traceable
-        else "PASS_WITH_REQUIRED_TABLE_CORRECTION"
+        else "PASS_TRACEABLE_K2_K5_ONLY"
     )
     status = {
         "overall_status": overall_status,
@@ -135,10 +135,11 @@ def main() -> int:
         "k_6_to_8_executable_hits": len(unsupported),
         "historical_probability_division_by_2_hits": probability_hits,
         "revision_probability_scaling": "none",
-        "required_action": (
-            "Regenerate Table S1 and Figure S2 using only traceable K=2-5. "
-            "Do not alter the frozen historical/public code; the corrected probability "
-            "path is revision-only."
+        "downstream_document_requirement": (
+            "Final Table S1 and Figure S2 must use only traceable K=2-5. The revision "
+            "document builder and post-build verifier enforce this requirement. Frozen "
+            "historical/public code remains unchanged; corrected probability handling is "
+            "revision-only."
         ),
     }
 

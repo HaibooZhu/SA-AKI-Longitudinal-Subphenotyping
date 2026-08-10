@@ -220,7 +220,9 @@ def main() -> int:
                 no_rrt,
                 (
                     f"Excluded {excluded_n} patients with documented RRT; retained "
-                    f"{unknown_n} patients without an explicit RRT-source row as unknown."
+                    f"{unknown_n} patients without an explicit RRT-source row. In this "
+                    "exclusion sensitivity, absence of a row is not treated as documented "
+                    "RRT and the patient is retained; the unknown count is reported."
                 ),
             )
         )
@@ -259,6 +261,10 @@ Patient-level scenario files remain local and are excluded from the public repos
 The RRT scenario excludes documented RRT recipients. Exact first-RRT timestamps are
 not available across all three frozen cohorts, so post-RRT truncation cannot be
 implemented consistently and is reported as a limitation rather than simulated.
+For eICU, absence of an RRT-source row was coded as 0 in the archived outcome notebook;
+the present clustering sensitivity uses the narrower estimand "exclude documented
+positive RRT" and separately reports absent source rows. This difference in operational
+semantics is explicit and is not presented as evidence that absence proves no RRT.
 """
     (args.report_dir / "W3_CROSS_COHORT_SCENARIO_MANIFEST.md").write_text(
         report, encoding="utf-8"

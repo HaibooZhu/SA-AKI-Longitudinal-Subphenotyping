@@ -33,3 +33,23 @@ def test_aggregate_csv_without_identifier_passes(tmp_path):
         path, index=False
     )
     assert MODULE.audit_file(path) == {"rows": 1, "columns": 2}
+
+
+def test_required_editor_evidence_workstreams_are_whitelisted():
+    assert "W1_data_integrity/audit_status.json" in MODULE.EVIDENCE_FILES
+    assert (
+        "W6_diuretic_exploratory/early_first_dose_interaction_tests.csv"
+        in MODULE.EVIDENCE_FILES
+    )
+    assert "W3_deep_k_stability/deep_k_status.json" in MODULE.EVIDENCE_FILES
+
+
+def test_workstation_paths_are_sanitized(tmp_path):
+    report_root = tmp_path / "revision" / "02_revision_outputs" / "reports"
+    report_root.mkdir(parents=True)
+    source_path = report_root.parents[1] / "00_frozen_inputs" / "input.csv"
+    text = f"Source: `{source_path}`; remote: `/home/researcher/private/input.csv`"
+    sanitized = MODULE.sanitize_text(text, report_root)
+    assert str(report_root.parents[1]) not in sanitized
+    assert "/home/researcher" not in sanitized
+    assert "<REVISION_REPOSITORY>" in sanitized

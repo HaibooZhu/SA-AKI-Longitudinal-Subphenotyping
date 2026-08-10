@@ -26,3 +26,10 @@ def test_uncertain_label_cannot_collide_with_candidate_cluster_number():
     text = SCRIPT.read_text(encoding="utf-8")
     assert "uncertain_label <- k + 1L" in text
     assert "group_hpd == uncertain_label" in text
+
+
+def test_runner_supports_prespecified_deep_profile_without_changing_default():
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert 'run_profile <- if (length(args) >= 10) args[[10]] else "fresh_refit"' in text
+    assert 'c("fresh_refit", "deep_refit")' in text
+    assert "run_config <- config[[run_profile]]" in text

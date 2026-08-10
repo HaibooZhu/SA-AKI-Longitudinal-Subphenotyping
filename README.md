@@ -1,6 +1,6 @@
 # SA-AKI Longitudinal Subphenotyping
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10–3.11](https://img.shields.io/badge/python-3.10%E2%80%933.11-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![Manuscript status](https://img.shields.io/badge/manuscript-under%20revision-lightgrey.svg)](#associated-manuscript)
 
@@ -74,7 +74,7 @@ The legacy package was consolidated from the earlier public development reposito
 
 ### Requirements
 
-- Python 3.10 or newer
+- Python 3.10 or 3.11 (the archived AutoGluon dependency set is not compatible with newer Python versions)
 - R with `mixAK` and `coda` for the clustering sensitivity analysis
 - authorized local access to the relevant ICU datasets for full reproduction
 
@@ -100,6 +100,7 @@ PYTHONPATH=src pytest -q
 
 ```bash
 python revision_analysis/02_missingness_sensitivity/build_corrected_time_grid.py --help
+python revision_analysis/03_cluster_robustness/summarize_deep_k_stability.py --help
 python revision_analysis/07_tables_figures/regenerate_supplementary_tables.py --help
 ```
 
@@ -131,12 +132,13 @@ The YAML files in `configs/` are historical templates, not the authoritative spe
 | `00_data_lineage/` | Lock the authoritative eICU cohort and detect mixed historical exports without releasing identifiers | Editor E.1 |
 | `01_data_audit/` | Trace Supplementary Table S3 from source matrix to workbook values | Editor E.1; Reviewer 1 major comment 3 |
 | `02_missingness_sensitivity/` | Audit cross-cohort inputs, rebuild the complete time grid, and create eICU urine-output scenarios | Editor E.2; Reviewer 1 major comment 4 |
-| `03_cluster_robustness/` | Audit archived k candidates, refit k=3, and quantify assignment stability and uncertainty | Editor E.2 |
+| `03_cluster_robustness/` | Audit traceable k candidates; run screening K=2–5 and deep K=2/K=3 multi-initialization experiments; rerun every CAUTION and urine-documentation scenario | Editor E.2; Reviewer 1 major comment 4 |
 | `04_independent_outcomes/` | Estimate adjusted clinical outcome associations including onset nonrenal SOFA | Editor E.3 |
 | `05_diuretic_exploratory/` | Audit and restrict the post-exposure diuretic analysis | Editor E.4; Reviewer 1 major comment 1 |
 | `06_classifier_validation/` | Replay the archived model and compare discrimination, calibration, and incremental value with a simple model | Editor E.5; Reviewer 1 major comment 2 |
 | `07_tables_figures/` | Regenerate harmonized longitudinal supplementary tables | Data-integrity revision |
 | `08_literature_update/` | Archive reproducible PubMed searches used in the revision | Literature update |
+| `09_revision_documents/` | Fail-closed structural QA for the regenerated revision documents | Final submission QA |
 
 ## Data access and privacy
 
@@ -152,7 +154,9 @@ Do not commit credential files, local path configuration, patient identifiers, d
 
 - Random seeds are declared in the relevant scripts or configuration objects.
 - Revision scripts write reports, plots, and tabular results to a caller-controlled output directory.
-- `run_mixak_k3_sensitivity.R` preserves posterior probabilities on their native 0–1 scale; no division by two is applied.
+- `run_mixak_refit.R` preserves posterior probabilities on their native 0–1 scale; no division by two is applied.
+- Deep confirmation uses all prespecified starts (three cohorts × K=2/3 × three starts; six CAUTION scenarios × three starts; two eICU urine-documentation scenarios × three starts). Degenerate or poorly mixing results remain in the denominator.
+- Conventional pooled-chain R-hat is not reported for untreated mixture chains because label switching invalidates direct pooling; labels are aligned before cross-start agreement, ARI, and NMI are calculated.
 - The ≥50% urine-output coverage scenario uses the fixed 30-window denominator, not the number of available rows.
 - Numeric mixture labels are aligned to archived phenotypes before agreement statistics are calculated.
 - Data-audit outputs distinguish source-data discrepancies from workbook-rendering discrepancies.

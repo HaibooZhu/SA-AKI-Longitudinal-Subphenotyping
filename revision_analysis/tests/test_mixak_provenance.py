@@ -49,3 +49,9 @@ def test_python_source_does_not_claim_opaque_rdata_objects_are_verified():
     source = MODULE_PATH.read_text(encoding="utf-8")
     assert '"verified_model_objects"' not in source
     assert '"expected_model_objects"' in source
+
+
+def test_provenance_status_is_not_left_as_an_unfinished_table_action():
+    source = MODULE_PATH.read_text(encoding="utf-8")
+    assert "PASS_WITH_REQUIRED_TABLE_CORRECTION" not in source
+    assert "PASS_TRACEABLE_K2_K5_ONLY" in source

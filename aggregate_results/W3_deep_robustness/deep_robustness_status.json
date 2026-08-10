@@ -1,0 +1,44 @@
+{
+  "overall_status": "DEEP_RERUNS_RETAIN_SENSITIVITY_CAUTIONS",
+  "expected_fits": 18,
+  "observed_fits": 18,
+  "thresholds": {
+    "exact_agreement_minimum": 0.75,
+    "ari_minimum": 0.5,
+    "minimum_cluster_prevalence": 0.03,
+    "maximum_high_lag1_fraction": 0.0
+  },
+  "caution_scenarios": [
+    {
+      "cohort": "aumc",
+      "scenario": "complete_30_window_followup",
+      "scenario_status": "CAUTION_MODE_OR_DATA_SENSITIVITY"
+    },
+    {
+      "cohort": "aumc",
+      "scenario": "exclude_documented_rrt",
+      "scenario_status": "CAUTION_MODE_OR_DATA_SENSITIVITY"
+    },
+    {
+      "cohort": "eicu",
+      "scenario": "complete_30_window_followup",
+      "scenario_status": "CAUTION_MODE_OR_DATA_SENSITIVITY"
+    },
+    {
+      "cohort": "eicu",
+      "scenario": "limited_forward_fill_complete_rows",
+      "scenario_status": "CAUTION_MODE_OR_DATA_SENSITIVITY"
+    },
+    {
+      "cohort": "mimic",
+      "scenario": "complete_30_window_followup",
+      "scenario_status": "CAUTION_MODE_OR_DATA_SENSITIVITY"
+    },
+    {
+      "cohort": "mimic",
+      "scenario": "limited_forward_fill_complete_rows",
+      "scenario_status": "CAUTION_MODE_OR_DATA_SENSITIVITY"
+    }
+  ],
+  "all_prespecified_seeds_retained": true
+}

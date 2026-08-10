@@ -207,6 +207,14 @@ def main() -> None:
     )
     plot_results(args.scenario, merged, trajectory, args.result_dir)
 
+    diagnostic_interpretation = (
+        "The lag-1 diagnostic met the prespecified single-chain threshold. This does "
+        "not remove the single-chain or selected-subset limitations."
+        if str(convergence_status).upper() == "PASS"
+        else "A convergence warning prevents this scenario from being presented as "
+        "confirmatory evidence even when agreement metrics appear favorable."
+    )
+
     report = f"""# Cluster sensitivity: {args.scenario}
 
 ## Bottom line
@@ -216,9 +224,7 @@ archived mixAK settings after changing the urine-output documentation rule. Nume
 mixture labels were aligned to the archived phenotypes by maximum overlap before any
 agreement metric was calculated.
 
-**Run diagnostic status: {convergence_status}.** A convergence warning prevents this
-scenario from being presented as confirmatory evidence even when agreement metrics
-appear favorable.
+**Run diagnostic status: {convergence_status}.** {diagnostic_interpretation}
 
 {metrics.round(3).to_markdown(index=False)}
 

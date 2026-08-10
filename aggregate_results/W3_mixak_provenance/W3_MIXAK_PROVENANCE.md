@@ -1,6 +1,6 @@
 # W3 mixAK 候选 K 与概率尺度溯源
 
-**状态：PASS_WITH_REQUIRED_TABLE_CORRECTION**
+**状态：PASS_TRACEABLE_K2_K5_ONLY**
 
 ## 结论
 

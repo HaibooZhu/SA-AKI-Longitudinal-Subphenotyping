@@ -39,6 +39,17 @@
     "scope": "Uniform multi-seed screening grid for fresh K comparisons and Editor Concern #2 robustness refits",
     "limitation": "These are screening-depth single-chain fits repeated across three deterministic seeds; R-hat is not estimable and the deeper archived eICU fits remain the primary K-selection provenance evidence."
   },
+  "deep_refit": {
+    "candidate_k": [2, 3],
+    "chains": 1,
+    "burn": 50,
+    "keep": 2000,
+    "thin": 50,
+    "info": 50,
+    "seeds": [20260805, 20260806, 20260807],
+    "scope": "Prespecified deep multi-initialization confirmation of K=2 versus K=3 and all screening-depth CAUTION scenarios.",
+    "limitation": "Each seed is an independent single-chain initialization. Mixture labels are aligned before cross-seed comparison; conventional multi-chain R-hat is not reported because label switching prevents direct untreated chain pooling. Every prespecified seed, including degenerate or poorly mixing fits, remains in the denominator."
+  },
   "posterior_assignment": {
     "probability_scaling": "none",
     "primary_label": "component_with_largest_posterior_median",
@@ -51,6 +62,9 @@
     "lag": 1,
     "absolute_autocorrelation_threshold": 0.85,
     "maximum_fraction_above_threshold": 0.0,
-    "single_chain_limitation": "R-hat is not estimable for the archived one-chain reproduction. Multi-seed revision experiments are reported separately."
+    "single_chain_limitation": "R-hat is not estimable for the archived one-chain reproduction. Multi-seed revision experiments are reported separately.",
+    "minimum_cluster_prevalence": 0.03,
+    "exact_agreement_minimum": 0.75,
+    "ari_minimum": 0.5
   }
 }

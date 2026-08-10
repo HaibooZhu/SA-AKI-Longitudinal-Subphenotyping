@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -26,6 +27,13 @@ EVIDENCE_FILES = (
     "W0_data_lineage/eicu_lineage_status.json",
     "W1_eicu_uo_sensitivity/eicu_uo_coverage_by_phenotype.csv",
     "W1_eicu_uo_sensitivity/eicu_uo_scenario_status.json",
+    "W1_data_integrity/W1_DATA_INTEGRITY_AUDIT.md",
+    "W1_data_integrity/audit_status.json",
+    "W1_data_integrity/table_s3_embedded_vs_generated.csv",
+    "W1_data_integrity/table_s3_fill_series.csv",
+    "W1_data_integrity/table_s3_missingness.csv",
+    "W1_data_integrity/table_s3_source_vs_generated.csv",
+    "W1_data_integrity/table_s3_unit_flags.csv",
     "W2_cross_cohort_inputs/W2_CROSS_COHORT_CLUSTER_INPUT_AUDIT.md",
     "W2_cross_cohort_inputs/cluster_matrix_inventory.csv",
     "W2_cross_cohort_inputs/cluster_feature_distribution_audit.csv",
@@ -39,6 +47,12 @@ EVIDENCE_FILES = (
     "W3_fresh_k_grid/fresh_k_grid_all_seed_diagnostics.csv",
     "W3_fresh_k_grid/fresh_k_grid_summary.csv",
     "W3_fresh_k_grid/fresh_k_grid_status.json",
+    "W3_deep_k_stability/W3_DEEP_K2_K3_STABILITY.md",
+    "W3_deep_k_stability/deep_k_fit_diagnostics.csv",
+    "W3_deep_k_stability/deep_k_k3_vs_archived.csv",
+    "W3_deep_k_stability/deep_k_k3_pairwise_stability.csv",
+    "W3_deep_k_stability/deep_k_cohort_summary.csv",
+    "W3_deep_k_stability/deep_k_status.json",
     "W3_cross_cohort_robustness/W3_CROSS_COHORT_SCENARIO_MANIFEST.md",
     "W3_cross_cohort_robustness/cross_cohort_scenario_manifest.csv",
     "W3_cross_cohort_robustness/W3_CROSS_COHORT_ROBUSTNESS_REFITS.md",
@@ -46,6 +60,14 @@ EVIDENCE_FILES = (
     "W3_cross_cohort_robustness/robustness_refit_status.json",
     "W3_cross_cohort_robustness/cross_cohort_robustness_matrix.png",
     "W3_cross_cohort_robustness/cross_cohort_robustness_matrix.pdf",
+    "W3_deep_robustness/W3_DEEP_CAUTION_RERUNS.md",
+    "W3_deep_robustness/deep_robustness_seed_metrics.csv",
+    "W3_deep_robustness/deep_robustness_scenario_summary.csv",
+    "W3_deep_robustness/deep_robustness_status.json",
+    "W3_uo_multiseed_sensitivity/W3_UO_MULTI_SEED_SENSITIVITY.md",
+    "W3_uo_multiseed_sensitivity/uo_multiseed_seed_metrics.csv",
+    "W3_uo_multiseed_sensitivity/uo_multiseed_scenario_summary.csv",
+    "W3_uo_multiseed_sensitivity/uo_multiseed_status.json",
     "W3_mixak_provenance/W3_MIXAK_PROVENANCE.md",
     "W3_mixak_provenance/mixak_code_provenance.csv",
     "W3_mixak_provenance/mixak_rdata_provenance.csv",
@@ -64,6 +86,17 @@ EVIDENCE_FILES = (
     "W5_independent_outcomes/outcome_adjusted_effects.csv",
     "W5_independent_outcomes/mortality_standardized_risks.csv",
     "W5_independent_outcomes/outcome_model_missingness.csv",
+    "W6_diuretic_exploratory/W6_DIURETIC_EXPLORATORY.md",
+    "W6_diuretic_exploratory/historical_matching_spec.csv",
+    "W6_diuretic_exploratory/archived_psm_balance_smd.csv",
+    "W6_diuretic_exploratory/early_first_dose_descriptive.csv",
+    "W6_diuretic_exploratory/early_first_dose_pooled_models.csv",
+    "W6_diuretic_exploratory/early_first_dose_interaction_models.csv",
+    "W6_diuretic_exploratory/early_first_dose_interaction_tests.csv",
+    "W6_diuretic_exploratory/W6_early_diuretic_response_forest.png",
+    "W6_diuretic_exploratory/W6_early_diuretic_response_forest.pdf",
+    "W8_revision_document_qa/W8_REVISION_DOCUMENT_QA.md",
+    "W8_revision_document_qa/revision_document_qa_status.json",
 )
 
 
@@ -103,6 +136,25 @@ def audit_file(path: Path) -> dict[str, object]:
     return {"text_file": True}
 
 
+def sanitize_text(text: str, report_root: Path) -> str:
+    """Remove workstation-specific paths from otherwise public aggregate evidence."""
+    revision_root = report_root.resolve().parents[1]
+    text = text.replace(str(revision_root), "<REVISION_REPOSITORY>")
+    return re.sub(
+        r"/(?:Users|Volumes|home)/[^\s`\"']+",
+        "<LOCAL_PATH>",
+        text,
+    )
+
+
+def publish_file(source: Path, destination: Path, report_root: Path) -> None:
+    if source.suffix.lower() in {".md", ".json", ".csv"}:
+        text = source.read_text(encoding="utf-8")
+        destination.write_text(sanitize_text(text, report_root), encoding="utf-8")
+    else:
+        shutil.copy2(source, destination)
+
+
 def main() -> int:
     args = parse_args()
     args.public_output.mkdir(parents=True, exist_ok=True)
@@ -116,7 +168,7 @@ def main() -> int:
         audit = audit_file(source)
         destination = args.public_output / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, destination)
+        publish_file(source, destination, args.report_root)
         manifest.append({"path": relative, **audit})
     if missing:
         raise FileNotFoundError(

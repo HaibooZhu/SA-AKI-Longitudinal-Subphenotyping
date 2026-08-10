@@ -5,7 +5,7 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 8) {
   stop(paste(
     "Usage: run_mixak_refit.R INPUT_CSV OUTPUT_DIR COHORT SCENARIO K SEED",
-    "FEATURES_COMMA_SEPARATED WRITE_ASSIGNMENTS [CONFIG_JSON]"
+    "FEATURES_COMMA_SEPARATED WRITE_ASSIGNMENTS [CONFIG_JSON] [RUN_PROFILE]"
   ))
 }
 
@@ -34,13 +34,17 @@ config_path <- if (length(args) >= 9) {
     mustWork = TRUE
   )
 }
+run_profile <- if (length(args) >= 10) args[[10]] else "fresh_refit"
 
 suppressPackageStartupMessages(library(mixAK))
 suppressPackageStartupMessages(library(coda))
 if (!requireNamespace("jsonlite", quietly = TRUE)) stop("jsonlite is required")
 if (!requireNamespace("digest", quietly = TRUE)) stop("digest is required")
 config <- jsonlite::fromJSON(config_path, simplifyVector = TRUE)
-run_config <- config$fresh_refit
+if (!(run_profile %in% c("fresh_refit", "deep_refit"))) {
+  stop("RUN_PROFILE must be fresh_refit or deep_refit")
+}
+run_config <- config[[run_profile]]
 assignment_config <- config$posterior_assignment
 diagnostic_config <- config$diagnostics
 if (!(k %in% as.integer(run_config$candidate_k))) stop("K is outside canonical grid")
@@ -128,6 +132,7 @@ diagnostics <- data.frame(
   scenario = scenario,
   K = k,
   seed = seed,
+  run_profile = run_profile,
   features = paste(features, collapse = ";"),
   patients = length(patients),
   rows = nrow(df),
@@ -145,6 +150,8 @@ diagnostics <- data.frame(
   sorted_cluster_prevalence = paste(sprintf("%.6f", prevalence), collapse = ";"),
   elapsed_seconds = elapsed_seconds,
   config_sha256 = digest::digest(file = config_path, algo = "sha256"),
+  mixak_version = as.character(utils::packageVersion("mixAK")),
+  r_version = R.version.string,
   probability_scale = "native 0-1 (no division)",
   stringsAsFactors = FALSE
 )
@@ -161,11 +168,16 @@ if (write_assignments) {
 }
 
 status <- list(
-  status = "COMPLETED_SINGLE_CHAIN_SEED",
+  status = if (run_profile == "deep_refit") {
+    "COMPLETED_DEEP_SINGLE_CHAIN_INITIALIZATION"
+  } else {
+    "COMPLETED_SCREENING_SINGLE_CHAIN_INITIALIZATION"
+  },
   cohort = cohort,
   scenario = scenario,
   K = k,
   seed = seed,
+  run_profile = run_profile,
   write_assignments = write_assignments,
   config_sha256 = diagnostics$config_sha256,
   limitation = run_config$limitation

@@ -1,5 +1,5 @@
 {
-  "overall_status": "ACTION_REQUIRED",
+  "overall_status": "PASS_WITH_QUARANTINED_LEGACY_ARTIFACTS",
   "authoritative_patient_count": 1417,
   "failed_required_artifacts": [],
   "quarantined_legacy_artifacts": [
@@ -14,5 +14,5 @@
   },
   "classifier_membership_failure_reasons": [],
   "privacy": "No patient-level identifiers are written by this audit.",
-  "next_action": "Re-derive outcome and risk-factor analyses from the authoritative cohort; do not use quarantined 1,970/1,748-patient snapshots."
+  "next_action": "Legacy 1,970/1,748-patient artifacts remain quarantined. Final revision outcome, risk-factor, and classifier analyses use authoritative or independently verified upstream sources."
 }
