@@ -1,0 +1,35 @@
+{
+  "overall_status": "DEEP_K3_INITIALIZATION_SENSITIVITY_REMAINS",
+  "expected_fits": 18,
+  "observed_fits": 18,
+  "seeds": [
+    20260805,
+    20260806,
+    20260807
+  ],
+  "candidate_k": [
+    2,
+    3
+  ],
+  "thresholds": {
+    "exact_agreement_minimum": 0.75,
+    "ari_minimum": 0.5,
+    "minimum_cluster_prevalence": 0.03,
+    "maximum_high_lag1_fraction": 0.0
+  },
+  "cohort_status": [
+    {
+      "cohort": "aumc",
+      "k3_cross_seed_status": "PASS_ALL_3_INITIALIZATIONS"
+    },
+    {
+      "cohort": "eicu",
+      "k3_cross_seed_status": "CAUTION_INITIALIZATION_SENSITIVITY"
+    },
+    {
+      "cohort": "mimic",
+      "k3_cross_seed_status": "PASS_ALL_3_INITIALIZATIONS"
+    }
+  ],
+  "interpretation_guardrail": "Deep K2/K3 comparisons assess initialization stability and reproducibility; they do not establish a unique biological taxonomy. All prespecified seeds remain in the denominator."
+}

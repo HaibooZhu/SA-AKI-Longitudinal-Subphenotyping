@@ -16,6 +16,8 @@ import numpy as np
 import pandas as pd
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SNAPSHOT = REPO_ROOT / "00_frozen_inputs/data_snapshot/remote_project_snapshot"
 PLANNED_WINDOWS = (-2, -1, *range(1, 29))
 
 
@@ -147,37 +149,44 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--cohort",
         type=Path,
-        required=True,
+        default=SNAPSHOT / "03.eICU_SAKI_trajCluster/sk_survival.csv",
     )
     parser.add_argument(
         "--observed",
         type=Path,
-        required=True,
+        default=SNAPSHOT / "03.eICU_SAKI_trajCluster/df_mixAK_fea4_C3_eicu.csv",
     )
     parser.add_argument(
         "--onsets",
         type=Path,
-        required=True,
+        default=(
+            SNAPSHOT
+            / "00.data_eicu/disease_definition/AKI/eicu_saki_event_time.csv"
+        ),
     )
     parser.add_argument(
         "--icu-details",
         type=Path,
-        required=True,
+        default=SNAPSHOT / "00.data_eicu/feature_data/df_eicu_sk_icudetails.csv",
     )
     parser.add_argument(
         "--documentation-mask",
         type=Path,
-        required=True,
+        default=(
+            REPO_ROOT
+            / "02_revision_outputs/analysis_inputs/eicu_uo_sensitivity"
+            / "eicu_uo_documentation_mask.csv"
+        ),
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("results/revision/eicu_time_grid"),
+        default=REPO_ROOT / "02_revision_outputs/analysis_inputs/eicu_time_grid",
     )
     parser.add_argument(
         "--report-dir",
         type=Path,
-        default=Path("results/revision/W2_missingness_grid"),
+        default=REPO_ROOT / "02_revision_outputs/reports/W2_missingness_grid",
     )
     return parser.parse_args()
 

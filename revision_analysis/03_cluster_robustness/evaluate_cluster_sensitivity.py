@@ -25,19 +25,23 @@ FEATURE_LABEL = {
 
 
 def parse_args() -> argparse.Namespace:
+    repo = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
     parser.add_argument("--scenario", required=True)
     parser.add_argument("--scenario-input", type=Path, required=True)
     parser.add_argument(
         "--original-data",
         type=Path,
-        required=True,
-        help="Authorized local archived eICU clustering matrix.",
+        default=(
+            repo
+            / "00_frozen_inputs/data_snapshot/remote_project_snapshot"
+            / "03.eICU_SAKI_trajCluster/df_mixAK_fea4_C3_eicu.csv"
+        ),
     )
     parser.add_argument(
         "--result-dir",
         type=Path,
-        default=Path("results/revision/W3_cluster_robustness"),
+        default=repo / "02_revision_outputs/reports/W3_cluster_robustness",
     )
     return parser.parse_args()
 
@@ -203,6 +207,14 @@ def main() -> None:
     )
     plot_results(args.scenario, merged, trajectory, args.result_dir)
 
+    diagnostic_interpretation = (
+        "The lag-1 diagnostic met the prespecified single-chain threshold. This does "
+        "not remove the single-chain or selected-subset limitations."
+        if str(convergence_status).upper() == "PASS"
+        else "A convergence warning prevents this scenario from being presented as "
+        "confirmatory evidence even when agreement metrics appear favorable."
+    )
+
     report = f"""# Cluster sensitivity: {args.scenario}
 
 ## Bottom line
@@ -212,9 +224,7 @@ archived mixAK settings after changing the urine-output documentation rule. Nume
 mixture labels were aligned to the archived phenotypes by maximum overlap before any
 agreement metric was calculated.
 
-**Run diagnostic status: {convergence_status}.** A convergence warning prevents this
-scenario from being presented as confirmatory evidence even when agreement metrics
-appear favorable.
+**Run diagnostic status: {convergence_status}.** {diagnostic_interpretation}
 
 {metrics.round(3).to_markdown(index=False)}
 

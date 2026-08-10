@@ -6,14 +6,23 @@
 args <- commandArgs(trailingOnly = TRUE)
 script_arg <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
 script_path <- normalizePath(sub("^--file=", "", script_arg[[1]]), mustWork = TRUE)
-if (length(args) < 1) {
-  stop("Usage: extract_archived_eicu_k_diagnostics.R ARCHIVE_RDATA [OUTPUT_DIR]")
+repo_root <- normalizePath(file.path(dirname(script_path), "..", ".."), mustWork = TRUE)
+archive_path <- if (length(args) >= 1) {
+  normalizePath(args[[1]], mustWork = TRUE)
+} else {
+  normalizePath(
+    file.path(
+      repo_root,
+      "00_frozen_inputs", "data_snapshot", "remote_project_snapshot",
+      "03.eICU_SAKI_trajCluster", "mixAK.RData"
+    ),
+    mustWork = TRUE
+  )
 }
-archive_path <- normalizePath(args[[1]], mustWork = TRUE)
 output_dir <- if (length(args) >= 2) {
   args[[2]]
 } else {
-  file.path("results", "revision", "W3_archived_k_selection")
+  file.path(repo_root, "02_revision_outputs", "reports", "W3_archived_k_selection")
 }
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 

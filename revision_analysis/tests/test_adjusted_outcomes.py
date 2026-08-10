@@ -73,3 +73,13 @@ def test_mismatch_count_ignores_missing_pairs():
     left = pd.Series([1.0, 2.0, np.nan, 1.0])
     right = pd.Series([1.0, 3.0, 2.0, np.nan])
     assert MODULE.mismatch_count(left, right) == 1
+
+
+def test_collapse_unique_source_rejects_conflicting_patient_values():
+    frame = pd.DataFrame(
+        {"stay_id": [1, 1], "first_aki_stage": [1, 2]}
+    )
+    with np.testing.assert_raises_regex(ValueError, "conflicting first_aki_stage"):
+        MODULE.collapse_unique_source(
+            frame, ["stay_id", "first_aki_stage"], "stage.csv"
+        )

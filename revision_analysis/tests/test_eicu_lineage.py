@@ -62,3 +62,31 @@ def test_final_input_requires_exact_set_and_label_match():
     assert MODULE.trust_decision("final_analysis_input", comparison) == "PASS"
     comparison["group_mismatch_n"] = 1
     assert MODULE.trust_decision("final_analysis_input", comparison) == "FAIL"
+
+
+def test_classifier_frame_reports_ambiguous_and_unknown_ids(tmp_path, monkeypatch):
+    model_dir = (
+        tmp_path
+        / "07.autogluon/01.model"
+        / "Result-a1234_selfv2_MimiceICU_AUMC_CorrMICfilt/input"
+    )
+    model_dir.mkdir(parents=True)
+    pd.DataFrame({"stay_id": [1, 3]}).to_csv(model_dir / "train_set.csv", index=False)
+    pd.DataFrame({"stay_id": [2]}).to_csv(model_dir / "test_set1.csv", index=False)
+    features = pd.DataFrame(
+        {
+            "stay_id": [1, 1, 2],
+            "_cid": ["1", "1", "2"],
+            "dataset": ["eicu", "mimic", "eicu"],
+        }
+    )
+    eicu, _, diagnostics = MODULE.build_classifier_eicu_frame(tmp_path, features)
+    assert diagnostics["ambiguous_feature_ids"] == 1
+    assert diagnostics["unknown_internal_split_ids"] == 1
+    assert eicu["_cid"].nunique() == 2
+
+
+def test_completed_lineage_does_not_leave_action_required_status():
+    source = MODULE_PATH.read_text(encoding="utf-8")
+    assert '"ACTION_REQUIRED" if quarantined' not in source
+    assert "PASS_WITH_QUARANTINED_LEGACY_ARTIFACTS" in source

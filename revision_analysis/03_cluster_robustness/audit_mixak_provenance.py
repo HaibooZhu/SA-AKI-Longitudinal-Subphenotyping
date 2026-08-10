@@ -13,7 +13,12 @@ import pandas as pd
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-OUTPUT_ROOT = Path("results/revision/W3_mixak_provenance")
+CODE_ROOT = (
+    REPO_ROOT
+    / "00_frozen_inputs/code_snapshot/SA-AKI_Longitudinal_Subphenotype"
+)
+DATA_ROOT = REPO_ROOT / "00_frozen_inputs/data_snapshot/remote_project_snapshot"
+OUTPUT_ROOT = REPO_ROOT / "02_revision_outputs/reports/W3_mixak_provenance"
 
 K_PATTERN = re.compile(r"Kmax\s*=\s*([0-9]+)")
 PROBABILITY_DIVISION_PATTERN = re.compile(
@@ -75,35 +80,21 @@ def audit_code(roots: list[Path]) -> pd.DataFrame:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--code-root",
-        type=Path,
-        required=True,
-        help="Read-only local snapshot of the historical analysis code.",
-    )
-    parser.add_argument(
-        "--data-root",
-        type=Path,
-        required=True,
-        help="Authorized local project snapshot containing archived model files and scripts.",
-    )
     parser.add_argument("--output-dir", type=Path, default=OUTPUT_ROOT)
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    code_root = args.code_root.resolve()
-    data_root = args.data_root.resolve()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     focused_data_roots = [
-        data_root / "01.MIMICIV_SAKI_trajCluster",
-        data_root / "02.AUMCdb_SAKI_trajCluster",
-        data_root / "03.eICU_SAKI_trajCluster",
-        data_root / "99.trajectory_validation",
-        data_root / "99.ricu_check",
+        DATA_ROOT / "01.MIMICIV_SAKI_trajCluster",
+        DATA_ROOT / "02.AUMCdb_SAKI_trajCluster",
+        DATA_ROOT / "03.eICU_SAKI_trajCluster",
+        DATA_ROOT / "99.trajectory_validation",
+        DATA_ROOT / "99.ricu_check",
     ]
-    inventory = audit_code([code_root, *focused_data_roots])
+    inventory = audit_code([CODE_ROOT, *focused_data_roots])
     candidates: set[int] = set()
     for payload in inventory["candidate_k_literals"]:
         candidates.update(json.loads(payload))
@@ -113,16 +104,20 @@ def main() -> int:
 
     rdata_paths = sorted(
         path
-        for base in [data_root / "03.eICU_SAKI_trajCluster", data_root / "99.ricu_check/eicu"]
+        for base in [DATA_ROOT / "03.eICU_SAKI_trajCluster", DATA_ROOT / "99.ricu_check/eicu"]
         for path in base.glob("*.RData")
     )
     rdata_inventory = pd.DataFrame(
         [
             {
-                "path": path.relative_to(data_root).as_posix(),
+                "path": path.relative_to(REPO_ROOT).as_posix(),
                 "sha256": sha256(path),
                 "size_bytes": path.stat().st_size,
-                "verified_model_objects": "mod2; mod3; mod4; mod5",
+                # The Python inventory hashes the opaque RData files but does not
+                # deserialize them. Object presence is verified separately by the
+                # R audit; this field therefore records only the expected schema.
+                "expected_model_objects": "mod2; mod3; mod4; mod5",
+                "object_verification_method": "separate R audit required",
                 "retained_draws": "K2=2000; K3=2000; K4=500; K5=500",
             }
             for path in rdata_paths
@@ -131,7 +126,7 @@ def main() -> int:
     overall_status = (
         "FAIL"
         if unsupported or missing_traceable
-        else "PASS_WITH_REQUIRED_TABLE_CORRECTION"
+        else "PASS_TRACEABLE_K2_K5_ONLY"
     )
     status = {
         "overall_status": overall_status,
@@ -140,10 +135,11 @@ def main() -> int:
         "k_6_to_8_executable_hits": len(unsupported),
         "historical_probability_division_by_2_hits": probability_hits,
         "revision_probability_scaling": "none",
-        "required_action": (
-            "Regenerate Table S1 and Figure S2 using only traceable K=2-5. "
-            "Do not alter the frozen historical/public code; the corrected probability "
-            "path is revision-only."
+        "downstream_document_requirement": (
+            "Final Table S1 and Figure S2 must use only traceable K=2-5. The revision "
+            "document builder and post-build verifier enforce this requirement. Frozen "
+            "historical/public code remains unchanged; corrected probability handling is "
+            "revision-only."
         ),
     }
 

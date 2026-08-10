@@ -1,0 +1,23 @@
+path,sha256,candidate_k_literals,posterior_probability_division_by_2_hits
+00_frozen_inputs/code_snapshot/SA-AKI_Longitudinal_Subphenotype/01.MIMICIV_SAKI_trajCluster/step2_mixAK_3-Fb2.ipynb,a6b79c5c14bf8b1690d3605dad85cce27774526d73e78c5955d80e79edb8825d,"[2, 3, 4, 5]",1
+00_frozen_inputs/code_snapshot/SA-AKI_Longitudinal_Subphenotype/02.AUMCdb_SAKI_trajCluster/step2_mixAK_3-Fb2.ipynb,683ac88a99259256b041a53c9db90841c404c6ae1d73368791f15c3143e231f9,"[2, 3, 4, 5]",1
+00_frozen_inputs/code_snapshot/SA-AKI_Longitudinal_Subphenotype/03.eICU_SAKI_trajCluster/step2_mixAK_3-Fb2-Repetitive.ipynb,8cec2c093d00ba11ef629be6e4cab3bef7aa0860f09110bc44c95e61427831b0,"[2, 3, 4, 5]",1
+00_frozen_inputs/code_snapshot/SA-AKI_Longitudinal_Subphenotype/03.eICU_SAKI_trajCluster/step2_mixAK_3-Fb2.ipynb,a915712250186e8856a2de94130aea298bc94f72fd24438167be63df8cfb83ab,"[2, 3, 4, 5]",1
+00_frozen_inputs/code_snapshot/SA-AKI_Longitudinal_Subphenotype/publication_code/01.MIMICIV_SAKI_trajCluster/step2_mixAK_3-Fb2.py,f374796d3e572ce78a587b4d1e0591e9ae7a8fe15eee06eca9e0a4ea21ba1fd7,"[2, 3, 4, 5]",1
+00_frozen_inputs/code_snapshot/SA-AKI_Longitudinal_Subphenotype/publication_code/02.AUMCdb_SAKI_trajCluster/step2_mixAK_3-Fb2.py,3b137fefe01f8846e53058a4340277922607db47617587f18e9fa91395db9744,"[2, 3, 4, 5]",1
+00_frozen_inputs/code_snapshot/SA-AKI_Longitudinal_Subphenotype/publication_code/03.eICU_SAKI_trajCluster/step2_mixAK_3-Fb2-Repetitive.py,0b7fa624b0b5ea45715b0248b99efc6f81976a42c076175c67552ff39094088f,"[2, 3, 4, 5]",1
+00_frozen_inputs/code_snapshot/SA-AKI_Longitudinal_Subphenotype/publication_code/03.eICU_SAKI_trajCluster/step2_mixAK_3-Fb2.py,4b24d35caef383d34c21629412e53fcec1352bbab82635fe4d96579787f6294c,"[2, 3, 4, 5]",1
+00_frozen_inputs/code_snapshot/SA-AKI_Longitudinal_Subphenotype/publication_package/src/sa_aki_pipeline/phenotyping/mixak.py,bd8227af445c2ee067c04d746d60eef88308f043f37dc7260d1e88c4ae25b710,[],1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/01.MIMICIV_SAKI_trajCluster/step2_mixAK_3-Fb2-rep.ipynb,f847462a35dc4deb41313e1be6cb36d9d13a600d5ac6b3df4d95ec701230af01,"[2, 3, 4, 5]",1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/01.MIMICIV_SAKI_trajCluster/step2_mixAK_3-Fb2.ipynb,59b9b0a5fc9e5999b92f8e84cc5d7c62f96f90e5f10a1c9ac11ba6c81cc77bce,"[2, 3, 4, 5]",1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/02.AUMCdb_SAKI_trajCluster/step2_mixAK_3-Fb2-rep.ipynb,84ca18140e2f54278f7de180ae8f4fc97e7e9cbbdbc497357a968a47fecebf99,"[2, 3, 4, 5]",1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/02.AUMCdb_SAKI_trajCluster/step2_mixAK_3-Fb2.ipynb,683ac88a99259256b041a53c9db90841c404c6ae1d73368791f15c3143e231f9,"[2, 3, 4, 5]",1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/03.eICU_SAKI_trajCluster/step2_mixAK_3-Fb2-rep.ipynb,17407df49cc0d13c25e3b80cccd42d260e5d2a16f5a5d8feea135a3e5adb3af0,"[2, 3, 4, 5]",1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/03.eICU_SAKI_trajCluster/step2_mixAK_3-Fb2.ipynb,a915712250186e8856a2de94130aea298bc94f72fd24438167be63df8cfb83ab,"[2, 3, 4, 5]",1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/99.ricu_check/eicu/02.mixAK_3-Fb2.ipynb,a0f78a8be36c9fd0f342b4f443ce7b3bf735744b445e22bfbfdce0ed07c70f47,"[2, 3, 4, 5]",1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/99.ricu_check/mimic/02.mixAK_3-Fb2.ipynb,dc6c3aaaa80e344f0551cfb9bbf94b03ceca618b88a9e32f724bd5d131022d48,"[2, 3, 4, 5]",1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/99.trajectory_validation/01.MIMICIV_SAKI_trajCluster/step2_mixAK_3-Fb2.ipynb,3df415585cde1fe9c61e1631eb5b05a90c423ff93b58f0b50533cb61bf88614c,"[2, 3, 4, 5]",1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/99.trajectory_validation/02.AUMCdb_SAKI_trajCluster/step2_mixAK_3-Fb2-rep.ipynb,224d1959478dc301a81f6171e3be6e37441c5a3dacbdd021f7728812431e8c90,"[2, 3, 4, 5]",1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/99.trajectory_validation/02.AUMCdb_SAKI_trajCluster/step2_mixAK_3-Fb2.ipynb,683ac88a99259256b041a53c9db90841c404c6ae1d73368791f15c3143e231f9,"[2, 3, 4, 5]",1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/99.trajectory_validation/03.eICU_SAKI_trajCluster/step2_mixAK_3-Fb2.ipynb,0bb4a7609b26794477ab1e89aa654d1119e4dcbad092a431004f741e37cdb139,"[2, 3, 4, 5]",1
+00_frozen_inputs/data_snapshot/remote_project_snapshot/99.trajectory_validation/03.eICU_SAKI_trajCluster/step2_mixAK_3-Fb2_rep.ipynb,ce202a533cf72785b4c18ce003e7ebeefc93268e6dc534656245f7c8cf06718c,"[2, 3, 4, 5]",1

@@ -1,0 +1,8 @@
+{
+  "status": "PASS_WITH_EXPECTED_RENDERING_ERROR",
+  "exit_code": 0,
+  "source_mismatches": 0,
+  "embedded_mismatches": 22,
+  "fill_series_findings": 1,
+  "unit_flags": 3
+}

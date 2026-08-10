@@ -79,3 +79,7 @@ Thumbs.db
 .idea/
 .vscode/
 *~
+
+# Identifier-free evidence is published only through the revision whitelist.
+!aggregate_results/
+!aggregate_results/**

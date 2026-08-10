@@ -1,0 +1,13 @@
+groupHPD,response_archived_first,n,deaths,mortality_risk,cohort,cohort_label,phenotype,response
+1,0,107,16.0,0.14953271028037382,mimic,MIMIC-IV,DR,nonresponsive
+1,1,168,24.0,0.14285714285714285,mimic,MIMIC-IV,DR,responsive
+2,0,126,9.0,0.07142857142857142,mimic,MIMIC-IV,RR,nonresponsive
+2,1,651,12.0,0.018433179723502304,mimic,MIMIC-IV,RR,responsive
+3,0,48,21.0,0.4375,mimic,MIMIC-IV,PW,nonresponsive
+3,1,24,10.0,0.4166666666666667,mimic,MIMIC-IV,PW,responsive
+1,0,82,23.0,0.2804878048780488,aumc,AUMC,DR,nonresponsive
+1,1,48,10.0,0.20833333333333334,aumc,AUMC,DR,responsive
+2,0,56,8.0,0.14285714285714285,aumc,AUMC,RR,nonresponsive
+2,1,172,24.0,0.13953488372093023,aumc,AUMC,RR,responsive
+3,0,22,7.0,0.3181818181818182,aumc,AUMC,PW,nonresponsive
+3,1,12,6.0,0.5,aumc,AUMC,PW,responsive

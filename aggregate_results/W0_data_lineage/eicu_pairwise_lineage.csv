@@ -1,0 +1,9 @@
+artifact,relation,authoritative_n,artifact_n,overlap_n,authoritative_only_n,artifact_only_n,group_conflict_patients,mortality_conflict_patients,group_mismatch_n,mortality_mismatch_n,trust_decision
+eicu_authoritative_survival_1417,MATCH,1417,1417,1417,0,0,0,0,0,0,REFERENCE
+eicu_final_cluster_input,MATCH,1417,1417,1417,0,0,0,0,0,0,PASS
+eicu_final_imputed_matrix,MATCH,1417,1417,1417,0,0,0,0,0,0,PASS
+eicu_cross_cohort_longitudinal_source,MATCH,1417,1417,1417,0,0,0,0,0,0,PASS
+eicu_legacy_survival_time_summary,SUPERSET_OF_AUTHORITATIVE,1417,1970,1417,0,553,0,0,200,0,NOT_AUTHORIZED_FOR_FINAL_RESULTS
+eicu_legacy_risk_factor_union,SUPERSET_OF_AUTHORITATIVE,1417,1748,1417,0,331,0,0,148,0,NOT_AUTHORIZED_FOR_FINAL_RESULTS
+eicu_legacy_classifier_feature_source,SUPERSET_OF_AUTHORITATIVE,1417,1748,1417,0,331,0,0,148,0,NOT_AUTHORIZED_FOR_FINAL_RESULTS
+eicu_classifier_actual_internal_inputs,MATCH,1417,1417,1417,0,0,0,0,0,0,PASS

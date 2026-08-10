@@ -1,0 +1,50 @@
+{
+  "overall_status": "PASS_FINAL_REVISION_DOCUMENT_QA",
+  "failures": [],
+  "checks": {
+    "missing_required_files": [],
+    "supplement": {
+      "figure_s2_caption_count": 1,
+      "figure_s2_captions": [
+        "Figure S2. Traceable cross-cohort candidate-K evidence. The upper row shows all three screening-depth seeds for K=2–5; labels report how often each K minimized the prespecified composite fit/mixing score. The lower row shows the deeper K=2 versus K=3 experiment using burn-in 50, 2,000 retained draws, thinning 50, and three independent initializations. All prespecified starts are displayed. Lower scores are favorable, but the comparison is interpreted as stability evidence rather than proof of a unique biological taxonomy."
+      ],
+      "table_s1_k_values": [
+        2,
+        3,
+        4,
+        5,
+        2,
+        3,
+        4,
+        5,
+        2,
+        3,
+        4,
+        5
+      ],
+      "table_s1_dataset_values": [
+        "AmsterdamUMCdb",
+        "AmsterdamUMCdb",
+        "AmsterdamUMCdb",
+        "AmsterdamUMCdb",
+        "eICU-CRD",
+        "eICU-CRD",
+        "eICU-CRD",
+        "eICU-CRD",
+        "MIMIC-IV",
+        "MIMIC-IV",
+        "MIMIC-IV",
+        "MIMIC-IV"
+      ],
+      "table_s1_has_only_k2_k5": true,
+      "table_s1_has_three_cohorts": true,
+      "table_s1_rows": 12
+    },
+    "prohibited_wording_hits": {
+      "JTIM_Revised_Manuscript_clean.docx": [],
+      "JTIM_Revised_Manuscript_highlight.docx": [],
+      "JTIM_Revised_Highlights.docx": [],
+      "JTIM_Revised_Cover_Letter.docx": []
+    }
+  }
+}

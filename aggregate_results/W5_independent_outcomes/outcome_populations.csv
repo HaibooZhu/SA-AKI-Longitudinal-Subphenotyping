@@ -1,0 +1,10 @@
+cohort,cohort_label,analysis_population,population_label,n_selected,n_with_outcome,events,event_risk,retained_from_authoritative
+mimic,MIMIC-IV,overall,Full authoritative cohort,4713,4713,804,0.1705919796308084,1.0
+mimic,MIMIC-IV,day7_all_survivors,Alive at day 7,4277,4277,368,0.08604161795651158,0.9074899214937407
+mimic,MIMIC-IV,day7_full_trajectory,Alive at day 7 and observed through time 28,1237,1237,269,0.21746160064672596,0.2624655208996393
+eicu,eICU-CRD,overall,Full authoritative cohort,1417,1400,167,0.11928571428571429,1.0
+eicu,eICU-CRD,day7_all_survivors,Alive at day 7,1309,1299,66,0.050808314087759814,0.9237826393789696
+eicu,eICU-CRD,day7_full_trajectory,Alive at day 7 and observed through time 28,501,494,50,0.10121457489878542,0.35356386732533523
+aumc,AUMC,overall,Full authoritative cohort,2183,2183,545,0.24965643609711408,1.0
+aumc,AUMC,day7_all_survivors,Alive at day 7,1892,1892,254,0.13424947145877378,0.8666972056802565
+aumc,AUMC,day7_full_trajectory,Alive at day 7 and observed through time 28,1116,1116,215,0.19265232974910393,0.5112230874942739

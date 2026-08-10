@@ -43,3 +43,15 @@ def test_python_scanner_finds_candidate_k_and_probability_scaling(tmp_path):
     inventory = MODULE.audit_code([tmp_path])
     assert json.loads(inventory.loc[0, "candidate_k_literals"]) == [5]
     assert inventory.loc[0, "posterior_probability_division_by_2_hits"] == 1
+
+
+def test_python_source_does_not_claim_opaque_rdata_objects_are_verified():
+    source = MODULE_PATH.read_text(encoding="utf-8")
+    assert '"verified_model_objects"' not in source
+    assert '"expected_model_objects"' in source
+
+
+def test_provenance_status_is_not_left_as_an_unfinished_table_action():
+    source = MODULE_PATH.read_text(encoding="utf-8")
+    assert "PASS_WITH_REQUIRED_TABLE_CORRECTION" not in source
+    assert "PASS_TRACEABLE_K2_K5_ONLY" in source

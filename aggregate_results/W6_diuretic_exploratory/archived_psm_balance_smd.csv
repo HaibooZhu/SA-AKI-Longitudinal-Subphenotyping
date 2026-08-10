@@ -1,0 +1,97 @@
+cohort,cohort_label,stage,phenotype,variable,used_in_archived_matching,max_absolute_pairwise_smd,worst_pair
+mimic,MIMIC-IV,before_matching,DR,creatinine,True,0.19117769531402554,No diuretic vs Non-responsive
+mimic,MIMIC-IV,before_matching,DR,urineoutput,True,0.6129262119960122,Non-responsive vs responsive
+mimic,MIMIC-IV,before_matching,DR,sofa_norenal,True,0.16728308415265414,No diuretic vs Non-responsive
+mimic,MIMIC-IV,before_matching,DR,colloid_bolus,True,0.11284595903549809,No diuretic vs Non-responsive
+mimic,MIMIC-IV,before_matching,DR,age,False,0.4082749159215555,No diuretic vs Non-responsive
+mimic,MIMIC-IV,before_matching,DR,male,False,0.20225405815917513,Non-responsive vs responsive
+mimic,MIMIC-IV,before_matching,DR,weight,False,0.28547010978791865,Non-responsive vs responsive
+mimic,MIMIC-IV,before_matching,DR,baseline_Scr,False,0.18405197738597753,No diuretic vs responsive
+mimic,MIMIC-IV,before_matching,RR,creatinine,True,0.1509603390041551,No diuretic vs responsive
+mimic,MIMIC-IV,before_matching,RR,urineoutput,True,0.576918683826622,Non-responsive vs responsive
+mimic,MIMIC-IV,before_matching,RR,sofa_norenal,True,0.4393473445506432,No diuretic vs responsive
+mimic,MIMIC-IV,before_matching,RR,colloid_bolus,True,0.26039511364665335,No diuretic vs Non-responsive
+mimic,MIMIC-IV,before_matching,RR,age,False,0.2973279438184977,No diuretic vs Non-responsive
+mimic,MIMIC-IV,before_matching,RR,male,False,0.07648701080929146,Non-responsive vs responsive
+mimic,MIMIC-IV,before_matching,RR,weight,False,0.2531432776093127,Non-responsive vs responsive
+mimic,MIMIC-IV,before_matching,RR,baseline_Scr,False,0.015713493521979226,Non-responsive vs responsive
+mimic,MIMIC-IV,before_matching,PW,creatinine,True,0.19828845677965987,Non-responsive vs responsive
+mimic,MIMIC-IV,before_matching,PW,urineoutput,True,0.5375977925359506,Non-responsive vs responsive
+mimic,MIMIC-IV,before_matching,PW,sofa_norenal,True,0.09656565822976582,No diuretic vs Non-responsive
+mimic,MIMIC-IV,before_matching,PW,colloid_bolus,True,0.1083247026644722,No diuretic vs Non-responsive
+mimic,MIMIC-IV,before_matching,PW,age,False,0.3106584091847787,Non-responsive vs responsive
+mimic,MIMIC-IV,before_matching,PW,male,False,0.24735852359352783,Non-responsive vs responsive
+mimic,MIMIC-IV,before_matching,PW,weight,False,0.2473487235507101,No diuretic vs responsive
+mimic,MIMIC-IV,before_matching,PW,baseline_Scr,False,0.45477572057064714,Non-responsive vs responsive
+mimic,MIMIC-IV,after_matching,DR,creatinine,True,0.10868403447891856,No diuretic vs Non-responsive
+mimic,MIMIC-IV,after_matching,DR,urineoutput,True,0.1573192691966879,No diuretic vs Non-responsive
+mimic,MIMIC-IV,after_matching,DR,sofa_norenal,True,0.14672559462381699,No diuretic vs responsive
+mimic,MIMIC-IV,after_matching,DR,colloid_bolus,True,0.18635400808990277,Non-responsive vs responsive
+mimic,MIMIC-IV,after_matching,DR,age,False,0.4322456163953278,No diuretic vs Non-responsive
+mimic,MIMIC-IV,after_matching,DR,male,False,0.08678030182568601,No diuretic vs Non-responsive
+mimic,MIMIC-IV,after_matching,DR,weight,False,0.12987406457030573,Non-responsive vs responsive
+mimic,MIMIC-IV,after_matching,DR,baseline_Scr,False,0.1952960443391591,No diuretic vs responsive
+mimic,MIMIC-IV,after_matching,RR,creatinine,True,0.051139376866549284,No diuretic vs responsive
+mimic,MIMIC-IV,after_matching,RR,urineoutput,True,0.08382100507719902,No diuretic vs Non-responsive
+mimic,MIMIC-IV,after_matching,RR,sofa_norenal,True,0.041801094219471306,No diuretic vs Non-responsive
+mimic,MIMIC-IV,after_matching,RR,colloid_bolus,True,0.18194468264021144,Non-responsive vs responsive
+mimic,MIMIC-IV,after_matching,RR,age,False,0.2700135487387394,No diuretic vs Non-responsive
+mimic,MIMIC-IV,after_matching,RR,male,False,0.04892898449416133,No diuretic vs responsive
+mimic,MIMIC-IV,after_matching,RR,weight,False,0.06468972731202223,Non-responsive vs responsive
+mimic,MIMIC-IV,after_matching,RR,baseline_Scr,False,0.11716219454360498,Non-responsive vs responsive
+mimic,MIMIC-IV,after_matching,PW,creatinine,True,0.1469700550479886,No diuretic vs responsive
+mimic,MIMIC-IV,after_matching,PW,urineoutput,True,0.38731329570606465,No diuretic vs responsive
+mimic,MIMIC-IV,after_matching,PW,sofa_norenal,True,0.15595962747749983,No diuretic vs responsive
+mimic,MIMIC-IV,after_matching,PW,colloid_bolus,True,0.22335795868246613,No diuretic vs responsive
+mimic,MIMIC-IV,after_matching,PW,age,False,0.25754394038964595,Non-responsive vs responsive
+mimic,MIMIC-IV,after_matching,PW,male,False,0.26243962992628195,Non-responsive vs responsive
+mimic,MIMIC-IV,after_matching,PW,weight,False,0.17947858835890976,No diuretic vs responsive
+mimic,MIMIC-IV,after_matching,PW,baseline_Scr,False,0.4048866799992923,Non-responsive vs responsive
+aumc,AUMC,before_matching,DR,creatinine,True,0.53776311261913,No diuretic vs Non-responsive
+aumc,AUMC,before_matching,DR,urineoutput,True,0.22731097254205326,Non-responsive vs responsive
+aumc,AUMC,before_matching,DR,sofa_norenal,True,0.31959882988956995,No diuretic vs Non-responsive
+aumc,AUMC,before_matching,DR,colloid_bolus,True,0.24539381098275279,No diuretic vs responsive
+aumc,AUMC,before_matching,DR,age,False,0.5416162484783712,No diuretic vs Non-responsive
+aumc,AUMC,before_matching,DR,male,False,0.29861045247914947,No diuretic vs Non-responsive
+aumc,AUMC,before_matching,DR,weight,False,0.1549088049750145,No diuretic vs responsive
+aumc,AUMC,before_matching,DR,baseline_Scr,False,0.4326916360569597,No diuretic vs Non-responsive
+aumc,AUMC,before_matching,RR,creatinine,True,0.2002547272204167,No diuretic vs Non-responsive
+aumc,AUMC,before_matching,RR,urineoutput,True,0.14702760031972553,No diuretic vs responsive
+aumc,AUMC,before_matching,RR,sofa_norenal,True,0.44761766409843756,No diuretic vs responsive
+aumc,AUMC,before_matching,RR,colloid_bolus,True,0.31002959757819654,Non-responsive vs responsive
+aumc,AUMC,before_matching,RR,age,False,0.4781572066924296,No diuretic vs Non-responsive
+aumc,AUMC,before_matching,RR,male,False,0.2479653674000865,No diuretic vs Non-responsive
+aumc,AUMC,before_matching,RR,weight,False,0.19756491969898324,Non-responsive vs responsive
+aumc,AUMC,before_matching,RR,baseline_Scr,False,0.1347283592228578,No diuretic vs Non-responsive
+aumc,AUMC,before_matching,PW,creatinine,True,0.1436183545694029,No diuretic vs Non-responsive
+aumc,AUMC,before_matching,PW,urineoutput,True,0.6533621489464821,No diuretic vs responsive
+aumc,AUMC,before_matching,PW,sofa_norenal,True,0.5038690949608575,No diuretic vs responsive
+aumc,AUMC,before_matching,PW,colloid_bolus,True,0.46050843882575193,No diuretic vs Non-responsive
+aumc,AUMC,before_matching,PW,age,False,0.4142888056376989,Non-responsive vs responsive
+aumc,AUMC,before_matching,PW,male,False,0.15954198437696188,No diuretic vs responsive
+aumc,AUMC,before_matching,PW,weight,False,0.2792029810536553,No diuretic vs Non-responsive
+aumc,AUMC,before_matching,PW,baseline_Scr,False,0.24593405493202883,Non-responsive vs responsive
+aumc,AUMC,after_matching,DR,creatinine,True,0.29823551941673926,No diuretic vs responsive
+aumc,AUMC,after_matching,DR,urineoutput,True,0.028665591559661818,No diuretic vs Non-responsive
+aumc,AUMC,after_matching,DR,sofa_norenal,True,0.17968759936603773,Non-responsive vs responsive
+aumc,AUMC,after_matching,DR,colloid_bolus,True,0.06819832520813694,Non-responsive vs responsive
+aumc,AUMC,after_matching,DR,age,False,0.4676264446615071,No diuretic vs Non-responsive
+aumc,AUMC,after_matching,DR,male,False,0.3687132248181175,No diuretic vs Non-responsive
+aumc,AUMC,after_matching,DR,weight,False,0.16609500492029972,No diuretic vs Non-responsive
+aumc,AUMC,after_matching,DR,baseline_Scr,False,0.1503335285528982,No diuretic vs Non-responsive
+aumc,AUMC,after_matching,RR,creatinine,True,0.11770527359003052,No diuretic vs Non-responsive
+aumc,AUMC,after_matching,RR,urineoutput,True,0.08345932691163653,Non-responsive vs responsive
+aumc,AUMC,after_matching,RR,sofa_norenal,True,0.15924407100861956,No diuretic vs Non-responsive
+aumc,AUMC,after_matching,RR,colloid_bolus,True,0.1411370504586124,No diuretic vs Non-responsive
+aumc,AUMC,after_matching,RR,age,False,0.550645298449407,No diuretic vs Non-responsive
+aumc,AUMC,after_matching,RR,male,False,0.16436680652592953,No diuretic vs responsive
+aumc,AUMC,after_matching,RR,weight,False,0.2294539854268184,No diuretic vs Non-responsive
+aumc,AUMC,after_matching,RR,baseline_Scr,False,0.15933902276809844,No diuretic vs Non-responsive
+aumc,AUMC,after_matching,PW,creatinine,True,0.1338749132756479,Non-responsive vs responsive
+aumc,AUMC,after_matching,PW,urineoutput,True,0.25186390989077473,No diuretic vs responsive
+aumc,AUMC,after_matching,PW,sofa_norenal,True,0.20129332523360924,No diuretic vs responsive
+aumc,AUMC,after_matching,PW,colloid_bolus,True,0.10425219864228887,No diuretic vs Non-responsive
+aumc,AUMC,after_matching,PW,age,False,0.34782558471511005,Non-responsive vs responsive
+aumc,AUMC,after_matching,PW,male,False,0.22498332150469913,Non-responsive vs responsive
+aumc,AUMC,after_matching,PW,weight,False,0.3500523680914077,No diuretic vs responsive
+aumc,AUMC,after_matching,PW,baseline_Scr,False,0.325743013445404,No diuretic vs responsive

@@ -17,7 +17,9 @@ import numpy as np
 import pandas as pd
 
 
-OUTPUT_ROOT = Path("results/revision/W2_cross_cohort_inputs")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DATA_ROOT = REPO_ROOT / "00_frozen_inputs/data_snapshot/remote_project_snapshot"
+OUTPUT_ROOT = REPO_ROOT / "02_revision_outputs/reports/W2_cross_cohort_inputs"
 
 
 @dataclass(frozen=True)
@@ -31,37 +33,35 @@ class CohortSpec:
     renal_features: tuple[str, ...]
 
 
-def cohort_specs(snapshot_root: Path) -> dict[str, CohortSpec]:
-    """Resolve the three executable cohort inputs below a caller-owned snapshot."""
-    return {
-        "MIMIC-IV": CohortSpec(
-            label="MIMIC-IV",
-            matrix=snapshot_root / "01.MIMICIV_SAKI_trajCluster/df_mixAK_fea4_C3.csv",
-            baseline=snapshot_root / "00.data_mimic/disease_definition/AKI/df_base_crea.csv",
-            baseline_id="stay_id",
-            baseline_column="baseline_Scr",
-            baseline_multiplier_to_mg_dl=1.0,
-            renal_features=("bun", "creatinine", "urineoutput", "crea_divide_basecrea"),
-        ),
-        "eICU-CRD": CohortSpec(
-            label="eICU-CRD",
-            matrix=snapshot_root / "03.eICU_SAKI_trajCluster/df_mixAK_fea4_C3_eicu.csv",
-            baseline=snapshot_root / "00.data_eicu/disease_definition/AKI/df_base_crea.csv",
-            baseline_id="stay_id",
-            baseline_column="baseline_creatinine",
-            baseline_multiplier_to_mg_dl=1.0,
-            renal_features=("bun", "creatinine", "urineoutput", "crea_divide_basecrea"),
-        ),
-        "AUMC": CohortSpec(
-            label="AUMC",
-            matrix=snapshot_root / "02.AUMCdb_SAKI_trajCluster/df_mixAK_fea3_C3_aumc.csv",
-            baseline=snapshot_root / "00.data_aumc/disease_definition/AKI/baseline_creatinine.csv",
-            baseline_id="admissionid",
-            baseline_column="baseline_creatinine",
-            baseline_multiplier_to_mg_dl=0.01131,
-            renal_features=("creatinine", "urineoutput", "crea_divide_basecrea"),
-        ),
-    }
+COHORTS = {
+    "MIMIC-IV": CohortSpec(
+        label="MIMIC-IV",
+        matrix=DATA_ROOT / "01.MIMICIV_SAKI_trajCluster/df_mixAK_fea4_C3.csv",
+        baseline=DATA_ROOT / "00.data_mimic/disease_definition/AKI/df_base_crea.csv",
+        baseline_id="stay_id",
+        baseline_column="baseline_Scr",
+        baseline_multiplier_to_mg_dl=1.0,
+        renal_features=("bun", "creatinine", "urineoutput", "crea_divide_basecrea"),
+    ),
+    "eICU-CRD": CohortSpec(
+        label="eICU-CRD",
+        matrix=DATA_ROOT / "03.eICU_SAKI_trajCluster/df_mixAK_fea4_C3_eicu.csv",
+        baseline=DATA_ROOT / "00.data_eicu/disease_definition/AKI/df_base_crea.csv",
+        baseline_id="stay_id",
+        baseline_column="baseline_creatinine",
+        baseline_multiplier_to_mg_dl=1.0,
+        renal_features=("bun", "creatinine", "urineoutput", "crea_divide_basecrea"),
+    ),
+    "AUMC": CohortSpec(
+        label="AUMC",
+        matrix=DATA_ROOT / "02.AUMCdb_SAKI_trajCluster/df_mixAK_fea3_C3_aumc.csv",
+        baseline=DATA_ROOT / "00.data_aumc/disease_definition/AKI/baseline_creatinine.csv",
+        baseline_id="admissionid",
+        baseline_column="baseline_creatinine",
+        baseline_multiplier_to_mg_dl=0.01131,
+        renal_features=("creatinine", "urineoutput", "crea_divide_basecrea"),
+    ),
+}
 
 ALL_RENAL_FEATURES = ("bun", "creatinine", "urineoutput", "crea_divide_basecrea")
 FEATURE_UNITS = {
@@ -71,6 +71,8 @@ FEATURE_UNITS = {
     "crea_divide_basecrea": "ratio",
 }
 GROUP_LABELS = {1: "DR", 2: "RR", 3: "PW", "1": "DR", "2": "RR", "3": "PW"}
+RATIO_EXACT_FRACTION_THRESHOLD = 0.999
+RATIO_MAX_ERROR_THRESHOLD = 0.01
 
 
 def sha256(path: Path) -> str:
@@ -83,12 +85,6 @@ def sha256(path: Path) -> str:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--snapshot-root",
-        type=Path,
-        required=True,
-        help="Authorized local project snapshot containing the documented cohort subdirectories.",
-    )
     parser.add_argument("--output-dir", type=Path, default=OUTPUT_ROOT)
     return parser.parse_args()
 
@@ -216,11 +212,52 @@ def audit_cohort(spec: CohortSpec) -> tuple[dict[str, object], list[dict[str, ob
     return inventory, feature_rows, label_rows, baseline_ratio_audit(frame, spec)
 
 
+def determine_audit_status(
+    inventory: pd.DataFrame, baselines: pd.DataFrame
+) -> dict[str, object]:
+    """Derive the release decision from prespecified integrity thresholds."""
+    failures: list[str] = []
+    for _, row in inventory.iterrows():
+        if int(row["patient_time_duplicates"]) != 0:
+            failures.append(f"{row['cohort']}: duplicate patient-time rows")
+    for _, row in baselines.iterrows():
+        cohort = row["cohort"]
+        if int(row["matrix_patients_linked_to_in_range_baseline"]) != int(
+            row["matrix_patients"]
+        ):
+            failures.append(f"{cohort}: incomplete linkage to eligible baseline SCr")
+        exact_fraction = float(row["ratio_exact_after_rounding_fraction"])
+        max_error = float(row["ratio_absolute_error_max"])
+        if not np.isfinite(exact_fraction) or exact_fraction < RATIO_EXACT_FRACTION_THRESHOLD:
+            failures.append(f"{cohort}: creatinine-ratio exact-match fraction below threshold")
+        if not np.isfinite(max_error) or max_error > RATIO_MAX_ERROR_THRESHOLD:
+            failures.append(f"{cohort}: creatinine-ratio maximum error above threshold")
+    return {
+        "overall_status": (
+            "FAIL_CROSS_COHORT_INPUT_INTEGRITY"
+            if failures
+            else "PASS_WITH_DISCLOSED_STRUCTURAL_HETEROGENEITY"
+        ),
+        "passed": not failures,
+        "failure_reasons": failures,
+        "thresholds": {
+            "patient_time_duplicates": 0,
+            "baseline_linkage_fraction": 1.0,
+            "ratio_exact_after_rounding_fraction_minimum": RATIO_EXACT_FRACTION_THRESHOLD,
+            "ratio_absolute_error_maximum": RATIO_MAX_ERROR_THRESHOLD,
+        },
+        "cross_cohort_difference": "AUMC lacks BUN and uses three renal variables",
+        "baseline_alternative_available": False,
+        "patient_level_output_written": False,
+    }
+
+
 def write_report(
     output_dir: Path,
     inventory: pd.DataFrame,
     features: pd.DataFrame,
     baselines: pd.DataFrame,
+    status: dict[str, object],
 ) -> None:
     feature_use = features.pivot(
         index="feature", columns="cohort", values="used_in_executable_clustering_input"
@@ -238,7 +275,7 @@ def write_report(
     ]
     report = f"""# W2 跨队列聚类输入、单位与基线肌酐审计
 
-**状态：PASS_WITH_DISCLOSED_STRUCTURAL_HETEROGENEITY**
+**状态：{status['overall_status']}**
 
 ## 审计结论
 
@@ -279,7 +316,7 @@ def main() -> int:
     feature_rows: list[dict[str, object]] = []
     label_rows: list[dict[str, object]] = []
     baseline_rows: list[dict[str, object]] = []
-    for spec in cohort_specs(args.snapshot_root.resolve()).values():
+    for spec in COHORTS.values():
         inventory, cohort_features, cohort_labels, baseline = audit_cohort(spec)
         inventories.append(inventory)
         feature_rows.extend(cohort_features)
@@ -294,18 +331,13 @@ def main() -> int:
     features_df.to_csv(args.output_dir / "cluster_feature_distribution_audit.csv", index=False)
     labels_df.to_csv(args.output_dir / "cluster_label_counts.csv", index=False)
     baselines_df.to_csv(args.output_dir / "baseline_creatinine_ratio_audit.csv", index=False)
-    status = {
-        "overall_status": "PASS_WITH_DISCLOSED_STRUCTURAL_HETEROGENEITY",
-        "cross_cohort_difference": "AUMC lacks BUN and uses three renal variables",
-        "baseline_alternative_available": False,
-        "patient_level_output_written": False,
-    }
+    status = determine_audit_status(inventory_df, baselines_df)
     (args.output_dir / "audit_status.json").write_text(
         json.dumps(status, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    write_report(args.output_dir, inventory_df, features_df, baselines_df)
+    write_report(args.output_dir, inventory_df, features_df, baselines_df, status)
     print(json.dumps(status, indent=2, ensure_ascii=False))
-    return 0
+    return 0 if status["passed"] else 1
 
 
 if __name__ == "__main__":

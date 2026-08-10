@@ -1,0 +1,7 @@
+cohort,phenotype,historical_method,historical_tuning,historical_covariates,source_file,source_sha256
+MIMIC-IV,DR,TriMatch,caliper=0.05,"creatinine, urineoutput, sofa_norenal, colloid_bolus",04.R_diuretic_responsitive-3psm.py,03d7a5f47b293e0e503e63898c938e629ab439b5210cab0628f2d447932bee9f
+MIMIC-IV,RR,TriMatch OneToN,M1=1.5; M2=4,"creatinine, urineoutput, sofa_norenal, colloid_bolus",04.R_diuretic_responsitive-3psm.py,03d7a5f47b293e0e503e63898c938e629ab439b5210cab0628f2d447932bee9f
+MIMIC-IV,PW,TriMatch,caliper=0.14,"creatinine, urineoutput, sofa_norenal, colloid_bolus",04.R_diuretic_responsitive-3psm.py,03d7a5f47b293e0e503e63898c938e629ab439b5210cab0628f2d447932bee9f
+AUMC,DR,TriMatch,caliper=0.10,"creatinine, urineoutput, sofa_norenal, colloid_bolus",04.R_diuretic_responsitive-3psm.py,b2042ec19493ad9093c6e7172b14400fd91378522422863cf5b0357b5bf35acf
+AUMC,RR,TriMatch,caliper=0.03,"creatinine, urineoutput, sofa_norenal, colloid_bolus",04.R_diuretic_responsitive-3psm.py,b2042ec19493ad9093c6e7172b14400fd91378522422863cf5b0357b5bf35acf
+AUMC,PW,TriMatch,caliper=0.20,"creatinine, urineoutput, sofa_norenal, colloid_bolus",04.R_diuretic_responsitive-3psm.py,b2042ec19493ad9093c6e7172b14400fd91378522422863cf5b0357b5bf35acf

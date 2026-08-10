@@ -19,6 +19,12 @@ from typing import Iterable
 import pandas as pd
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_SNAPSHOT = (
+    REPO_ROOT / "00_frozen_inputs/data_snapshot/remote_project_snapshot"
+)
+DEFAULT_OUTPUT = REPO_ROOT / "02_revision_outputs/reports/W0_data_lineage"
+
 ID_COLUMN = "stay_id"
 COMPARISON_COLUMNS = {
     ID_COLUMN,
@@ -288,6 +294,49 @@ def write_markdown(
         "group_mismatch_n",
         "mortality_mismatch_n",
     ]
+    by_artifact = pairwise.set_index("artifact")
+
+    def comparison_line(artifact: str, label: str) -> str:
+        row = by_artifact.loc[artifact]
+        return (
+            f"- {label}含 {int(row['artifact_n']):,} 名患者；相对权威队列，"
+            f"额外 {int(row['artifact_only_n']):,} 人、缺少 "
+            f"{int(row['authoritative_only_n']):,} 人，重叠患者中有 "
+            f"{int(row['group_mismatch_n']):,} 个表型标签差异和 "
+            f"{int(row['mortality_mismatch_n']):,} 个 28 天死亡结局差异。"
+        )
+
+    final_inputs = manifest.loc[
+        manifest["role"].isin(["final_analysis_input", "final_outcome_input"])
+    ]
+    passed_final = int(final_inputs["trust_decision"].eq("PASS").sum())
+    conclusion_lines = [
+        (
+            f"- 共核查 {len(final_inputs)} 个最终分析输入，其中 {passed_final} 个通过"
+            "患者集合与标签一致性规则。"
+        ),
+        comparison_line(
+            "eicu_legacy_survival_time_summary", "旧版生存时间汇总"
+        ),
+        comparison_line(
+            "eicu_legacy_risk_factor_union", "旧版风险因素合并文件"
+        ),
+        comparison_line(
+            "eicu_legacy_classifier_feature_source", "分类器上游特征快照"
+        ),
+        (
+            "- 分类器内部输入的队列归属检查发现 "
+            f"{status['classifier_membership_diagnostics']['ambiguous_feature_ids']} 个"
+            "跨数据库歧义 ID 和 "
+            f"{status['classifier_membership_diagnostics']['unknown_internal_split_ids']} 个"
+            "无法归属的内部拆分 ID；任一计数非零都会使审计失败。"
+        ),
+        (
+            "- 因此，所有标记为 `NOT_AUTHORIZED_FOR_FINAL_RESULTS` 的旧派生文件"
+            "只可用于追溯；最终分析必须从权威队列及经核验的上游变量重新派生。"
+        ),
+    ]
+
     lines = [
         "# W0 eICU 数据血缘与队列一致性报告",
         "",
@@ -297,10 +346,7 @@ def write_markdown(
         "",
         "## 结论先行",
         "",
-        "- 最终聚类输入、插补矩阵、跨库纵向表和分类器实际内部训练/验证输入均与权威 1,417 人队列一致。",
-        "- 旧版生存时间汇总包含额外 553 人，并在重叠患者中存在 200 个表型标签差异。",
-        "- 旧版风险因素与分类器上游特征快照均为 1,748 人，包含额外 331 人；风险因素文件在重叠患者中还有 148 个标签差异和 17 个 28 天死亡结局差异。",
-        "- 因此，旧版 1,970/1,748 人派生文件已被标记为不得用于最终结果。独立结局、风险因素及任何依赖这些文件的结果必须从权威队列重新派生后才能写入回复信或稿件。",
+        *conclusion_lines,
         "",
         "## 工件清单",
         "",
@@ -325,13 +371,8 @@ def write_markdown(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--snapshot-root",
-        type=Path,
-        required=True,
-        help="Authorized local project snapshot; it is read but never modified.",
-    )
-    parser.add_argument("--output-dir", type=Path, default=Path("results/revision/W0_data_lineage"))
+    parser.add_argument("--snapshot-root", type=Path, default=DEFAULT_SNAPSHOT)
+    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     return parser.parse_args()
 
 
@@ -448,22 +489,32 @@ def main() -> int:
     pairwise_df = pd.DataFrame(pairwise_rows)
     required = manifest_df[manifest_df["role"].isin(["final_analysis_input", "final_outcome_input"])]
     failed_required = required.loc[required["trust_decision"].ne("PASS"), "artifact"].tolist()
+    membership_failures = [
+        name
+        for name, count in classifier_diagnostics.items()
+        if name in {"ambiguous_feature_ids", "unknown_internal_split_ids"}
+        and int(count) > 0
+    ]
+    if membership_failures:
+        failed_required.append("eicu_classifier_membership_resolution")
     quarantined = manifest_df.loc[
         manifest_df["trust_decision"].eq("NOT_AUTHORIZED_FOR_FINAL_RESULTS"),
         "artifact",
     ].tolist()
     status = {
         "overall_status": "FAIL" if failed_required else (
-            "ACTION_REQUIRED" if quarantined else "PASS"
+            "PASS_WITH_QUARANTINED_LEGACY_ARTIFACTS" if quarantined else "PASS"
         ),
         "authoritative_patient_count": authoritative["_cid"].nunique(),
         "failed_required_artifacts": failed_required,
         "quarantined_legacy_artifacts": quarantined,
         "classifier_membership_diagnostics": classifier_diagnostics,
+        "classifier_membership_failure_reasons": membership_failures,
         "privacy": "No patient-level identifiers are written by this audit.",
         "next_action": (
-            "Re-derive outcome and risk-factor analyses from the authoritative cohort; "
-            "do not use quarantined 1,970/1,748-patient snapshots."
+            "Legacy 1,970/1,748-patient artifacts remain quarantined. Final revision "
+            "outcome, risk-factor, and classifier analyses use authoritative or "
+            "independently verified upstream sources."
             if quarantined
             else "All checked artifacts are eligible for their declared role."
         ),

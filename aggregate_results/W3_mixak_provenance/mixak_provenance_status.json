@@ -1,0 +1,18 @@
+{
+  "overall_status": "PASS_TRACEABLE_K2_K5_ONLY",
+  "traceable_candidate_k": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "untraceable_table_s1_k": [
+    6,
+    7,
+    8
+  ],
+  "k_6_to_8_executable_hits": 0,
+  "historical_probability_division_by_2_hits": 22,
+  "revision_probability_scaling": "none",
+  "downstream_document_requirement": "Final Table S1 and Figure S2 must use only traceable K=2-5. The revision document builder and post-build verifier enforce this requirement. Frozen historical/public code remains unchanged; corrected probability handling is revision-only."
+}

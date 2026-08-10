@@ -1,0 +1,4 @@
+cohort,authoritative_n,legacy_risk_n,legacy_extra_n,legacy_group_mismatch_n,legacy_mortality_mismatch_n,authoritative_mortality28_missing_n,authoritative_mortality7_missing_n
+MIMIC-IV,4713,4713,0,0,0,0,0
+eICU-CRD,1417,1748,331,148,0,17,7
+AUMC,2183,2183,0,0,0,0,0

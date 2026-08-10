@@ -15,6 +15,9 @@ import pandas as pd
 # post-onset windows. There is intentionally no time-zero label because the
 # historical binning maps [0, 6) hours to time 1.
 PLANNED_WINDOWS = (-2, -1, *range(1, 29))
+EXACT_MATCH_THRESHOLD = 0.999
+MAE_THRESHOLD = 0.01
+DOMINANCE_MARGIN = 0.10
 
 
 def parse_args() -> argparse.Namespace:
@@ -66,6 +69,107 @@ def calculate_coverage(audited: pd.DataFrame) -> pd.DataFrame:
     return coverage
 
 
+def aggregation_metrics(archived: pd.Series, reconstructed: pd.Series) -> dict[str, float]:
+    """Return aggregate-only reconstruction diagnostics for one candidate rule."""
+    archived_numeric = pd.to_numeric(archived, errors="coerce")
+    reconstructed_numeric = pd.to_numeric(reconstructed, errors="coerce")
+    evaluable = archived_numeric.notna() & reconstructed_numeric.notna()
+    if not evaluable.any():
+        return {
+            "evaluable_windows": 0,
+            "exact_match_fraction": 0.0,
+            "mae": float("inf"),
+            "median_absolute_error": float("inf"),
+            "maximum_absolute_error": float("inf"),
+        }
+    error = (
+        archived_numeric.loc[evaluable] - reconstructed_numeric.loc[evaluable]
+    ).abs()
+    exact = np.isclose(
+        archived_numeric.loc[evaluable],
+        reconstructed_numeric.loc[evaluable],
+        rtol=1e-9,
+        atol=1e-9,
+    )
+    return {
+        "evaluable_windows": int(evaluable.sum()),
+        "exact_match_fraction": float(exact.mean()),
+        "mae": float(error.mean()),
+        "median_absolute_error": float(error.median()),
+        "maximum_absolute_error": float(error.max()),
+    }
+
+
+def audit_aggregation_rule(
+    archived: pd.Series,
+    reconstructed_sum: pd.Series,
+    reconstructed_mean: pd.Series,
+) -> dict[str, object]:
+    """Select sum or mean only when the archived transformation is reconstructed.
+
+    The decision is deliberately fail-closed. A candidate must reproduce at least
+    99.9% of documented windows, have essentially zero median error and MAE no
+    greater than 0.01 mL, and materially outperform the alternative rule.
+    """
+    candidates = {
+        "sum": aggregation_metrics(archived, reconstructed_sum),
+        "mean": aggregation_metrics(archived, reconstructed_mean),
+    }
+    ranked = sorted(
+        candidates,
+        key=lambda name: (
+            -candidates[name]["exact_match_fraction"],
+            candidates[name]["mae"],
+        ),
+    )
+    winner, runner_up = ranked
+    winning = candidates[winner]
+    dominance = (
+        winning["exact_match_fraction"]
+        - candidates[runner_up]["exact_match_fraction"]
+    )
+    passed = (
+        winning["exact_match_fraction"] >= EXACT_MATCH_THRESHOLD
+        and winning["median_absolute_error"] <= 1e-9
+        and winning["mae"] <= MAE_THRESHOLD
+        and dominance >= DOMINANCE_MARGIN
+    )
+    discrepancy_windows = int(
+        round(
+            winning["evaluable_windows"]
+            * (1.0 - winning["exact_match_fraction"])
+        )
+    )
+    return {
+        "status": (
+            f"PASS_{winner.upper()}_RECONSTRUCTED"
+            + (
+                "_WITH_ISOLATED_SOURCE_DISCREPANCY"
+                if discrepancy_windows > 0
+                else ""
+            )
+            if passed
+            else "FAIL_UO_AGGREGATION_NOT_RECONSTRUCTED"
+        ),
+        "passed": passed,
+        "selected_rule": winner if passed else None,
+        "discrepancy_windows": discrepancy_windows,
+        "exact_match_threshold": EXACT_MATCH_THRESHOLD,
+        "mae_threshold": MAE_THRESHOLD,
+        "dominance_margin": DOMINANCE_MARGIN,
+        "observed_dominance": dominance,
+        "sum_exact_match_fraction": candidates["sum"]["exact_match_fraction"],
+        "mean_exact_match_fraction": candidates["mean"]["exact_match_fraction"],
+        "sum_MAE": candidates["sum"]["mae"],
+        "mean_MAE": candidates["mean"]["mae"],
+        "sum_median_absolute_error": candidates["sum"]["median_absolute_error"],
+        "mean_median_absolute_error": candidates["mean"]["median_absolute_error"],
+        "sum_maximum_absolute_error": candidates["sum"]["maximum_absolute_error"],
+        "mean_maximum_absolute_error": candidates["mean"]["maximum_absolute_error"],
+        "evaluable_documented_windows": winning["evaluable_windows"],
+    }
+
+
 def main() -> int:
     args = parse_args()
     output_dir = args.output_dir.resolve()
@@ -108,12 +212,32 @@ def main() -> int:
 
     documented_rows = audited["uo_documented"]
     archived_uo = pd.to_numeric(audited.loc[documented_rows, "urineoutput"], errors="coerce")
-    observed_uo = pd.to_numeric(
-        audited.loc[documented_rows, "observed_uo_mean"], errors="coerce"
+    aggregation_audit = audit_aggregation_rule(
+        archived_uo,
+        audited.loc[documented_rows, "observed_uo_sum"],
+        audited.loc[documented_rows, "observed_uo_mean"],
     )
-    comparison = np.isclose(archived_uo, observed_uo, rtol=1e-9, atol=1e-9, equal_nan=True)
-    archived_vs_observed_mismatch = int((~comparison).sum())
-    # Use the raw documented-window mean explicitly in both sensitivity inputs.
+    if not aggregation_audit["passed"]:
+        failure_status = {
+            **aggregation_audit,
+            "analysis_inputs_written": False,
+            "required_action": (
+                "Stop: neither raw-record sum nor mean reconstructs the archived "
+                "six-hour urine-output field within the prespecified thresholds."
+            ),
+        }
+        (output_dir / "eicu_uo_scenario_status.json").write_text(
+            json.dumps(failure_status, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        print(json.dumps(failure_status, indent=2, ensure_ascii=False))
+        return 1
+
+    selected_column = f"observed_uo_{aggregation_audit['selected_rule']}"
+    observed_uo = pd.to_numeric(
+        audited.loc[documented_rows, selected_column], errors="coerce"
+    )
+    # Use the selected raw reconstruction explicitly in both sensitivity inputs.
     audited.loc[documented_rows, "urineoutput"] = observed_uo.to_numpy()
 
     coverage = calculate_coverage(audited)
@@ -146,7 +270,8 @@ def main() -> int:
         coverage["documented_fraction_available"].ge(0.50).sum()
     )
     status = {
-        "status": "PASS",
+        **aggregation_audit,
+        "analysis_inputs_written": True,
         "planned_window_definition": list(PLANNED_WINDOWS),
         "planned_window_denominator": len(PLANNED_WINDOWS),
         "authoritative_patients": len(coverage),
@@ -157,8 +282,13 @@ def main() -> int:
         "patients_excluded_by_corrected_denominator": (
             prior_available_denominator_n - int(high_coverage["stay_id"].nunique())
         ),
-        "archived_vs_raw_documented_uo_mismatch_rows": archived_vs_observed_mismatch,
-        "urine_output_aggregation": "mean of documented raw urine-output records per 6-hour window",
+        "archived_vs_raw_documented_uo_mismatch_rows": aggregation_audit[
+            "discrepancy_windows"
+        ],
+        "urine_output_aggregation": (
+            f"{aggregation_audit['selected_rule']} of documented raw urine-output "
+            "records per 6-hour window"
+        ),
     }
     (output_dir / "eicu_uo_scenario_status.json").write_text(
         json.dumps(status, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"

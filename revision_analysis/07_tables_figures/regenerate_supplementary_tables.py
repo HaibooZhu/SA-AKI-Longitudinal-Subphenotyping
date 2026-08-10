@@ -68,17 +68,21 @@ COHORT_LABEL = {"mimic": "MIMIC-IV", "aumcdb": "AUMC", "eicu": "eICU-CRD"}
 
 
 def parse_args() -> argparse.Namespace:
+    repo = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--source-matrix",
         type=Path,
-        required=True,
-        help="Authorized local combined longitudinal source matrix.",
+        default=(
+            repo
+            / "00_frozen_inputs/data_snapshot/remote_project_snapshot"
+            / "04.other_feature_in_three_dataset/00.data_merge/df_saki_timeseries_feature_all.csv"
+        ),
     )
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=Path("results/revision/harmonized_longitudinal_tables"),
+        default=repo / "02_revision_outputs/tables/harmonized_longitudinal_tables",
     )
     return parser.parse_args()
 

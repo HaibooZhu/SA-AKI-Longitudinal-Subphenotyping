@@ -269,6 +269,7 @@ def write_report(
     out_dir: Path,
     metrics: pd.DataFrame,
     calibration: pd.DataFrame,
+    pairwise: pd.DataFrame,
     incremental: pd.DataFrame,
     versions: dict[str, str],
 ) -> None:
@@ -299,6 +300,14 @@ not a proposed clinical score.
 
 Ideal calibration has intercept 0 and slope 1. ECE is an absolute decile-weighted
 calibration error; lower is better.
+
+## Pair-normalized discrimination
+
+{md(pairwise)}
+
+These are the three undirected phenotype pairs. For each pair, the score is
+`p(class A) / [p(class A) + p(class B)]`; therefore no six-direction raw-probability
+results are mislabeled as ordinary one-versus-one AUCs.
 
 ## Paired incremental-value analysis
 
@@ -414,7 +423,14 @@ def main() -> None:
     (args.out_dir / "archived_replay_environment.json").write_text(
         json.dumps(environment, indent=2), encoding="utf-8"
     )
-    write_report(args.out_dir, overall_all, calibration_all, incremental, versions)
+    write_report(
+        args.out_dir,
+        overall_all,
+        calibration_all,
+        pairwise,
+        incremental,
+        versions,
+    )
     print(overall_all.to_string(index=False))
 
 

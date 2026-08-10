@@ -21,6 +21,7 @@ The public repository does not distribute any clinical data. This document recor
 | Urine sensitivity | onset table | `stay_id`, `saki_onset` in hours |
 | Urine sensitivity | clustering input | `stay_id`, `time`, four clustering features, and archived labels |
 | Cluster comparison | archived eICU longitudinal table | `stay_id`, `groupHPD` plus four clustering features for plotting |
+| Deep clustering confirmation | cohort/scenario longitudinal table | `stay_id`, `time`, cohort-specific renal features; archived primary tables also contain one patient-level `groupHPD` label used only for aggregate aligned comparisons |
 | Adjusted outcomes | cohort risk-factor tables | files named `df_<cohort>_c<1-3>_riskfactor.csv`; model variables are declared in `FORMULA` |
 | Diuretic audit | archived cohort folders | `01.mimic/` and `02.aumc/`, each with the three filenames used by `load_files()` |
 | Classifier validation | archived model directory | `input/train_set.csv`, `input/test_set1.csv`, `input/test_set2.csv`, plus archived result summaries used by `original_tables()` |
@@ -38,6 +39,16 @@ authorized_sa_aki_data/
 ```
 
 Keep this directory outside the Git repository. Pass its files to the scripts through command-line arguments. Store generated outputs under the ignored `results/` directory or another restricted location.
+
+## RRT indicator semantics
+
+The clustering sensitivity estimates the effect of excluding **documented positive**
+RRT recipients. A missing row in an RRT source table is retained and counted separately;
+it is not treated as evidence that RRT was documented. The archived eICU outcome notebook
+used a different operational convention, coding left-join absence as 0 for a covariate.
+These are different estimands and must remain explicit. Neither convention supplies an
+exact RRT start time, so a harmonized post-initiation trajectory truncation analysis is
+not reconstructed from the available frozen inputs.
 
 ## Pre-run checks
 

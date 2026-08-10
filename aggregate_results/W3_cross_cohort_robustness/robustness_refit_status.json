@@ -1,0 +1,36 @@
+{
+  "overall_status": "COMPLETE_WITH_SENSITIVITY_CAUTIONS",
+  "completed_refits": 15,
+  "thresholds": {
+    "exact_agreement_minimum": 0.75,
+    "ari_minimum": 0.5,
+    "minimum_cluster_prevalence": 0.03
+  },
+  "caution_scenarios": [
+    {
+      "cohort": "mimic",
+      "scenario": "complete_30_window_followup"
+    },
+    {
+      "cohort": "mimic",
+      "scenario": "limited_forward_fill_complete_rows"
+    },
+    {
+      "cohort": "eicu",
+      "scenario": "complete_30_window_followup"
+    },
+    {
+      "cohort": "eicu",
+      "scenario": "limited_forward_fill_complete_rows"
+    },
+    {
+      "cohort": "aumc",
+      "scenario": "exclude_documented_rrt"
+    },
+    {
+      "cohort": "aumc",
+      "scenario": "complete_30_window_followup"
+    }
+  ],
+  "post_rrt_truncation_available_across_all_cohorts": false
+}

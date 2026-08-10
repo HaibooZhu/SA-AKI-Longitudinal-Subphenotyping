@@ -1,0 +1,3 @@
+path,sha256,size_bytes,expected_model_objects,object_verification_method,retained_draws
+00_frozen_inputs/data_snapshot/remote_project_snapshot/03.eICU_SAKI_trajCluster/mixAK.RData,7fbd4265968a68b99c6948a86ef997e09c5e55daacaa4716ebd3af0dcaf22193,711120497,mod2; mod3; mod4; mod5,separate R audit required,K2=2000; K3=2000; K4=500; K5=500
+00_frozen_inputs/data_snapshot/remote_project_snapshot/99.ricu_check/eicu/mixAK.RData,1ea3b9233334ded817378cc359f8f9a8719031f740a6c8c8fc6757b27dcbd285,705605481,mod2; mod3; mod4; mod5,separate R audit required,K2=2000; K3=2000; K4=500; K5=500

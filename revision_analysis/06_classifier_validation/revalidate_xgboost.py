@@ -45,17 +45,18 @@ PHENOTYPE = {1: "DR", 2: "RR", 3: "PW"}
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--model-dir",
-        type=Path,
-        required=True,
-        help="Authorized local classifier-analysis directory containing the prepared splits.",
+    repo = Path(__file__).resolve().parents[2]
+    frozen = (
+        repo
+        / "00_frozen_inputs/data_snapshot/remote_project_snapshot/07.autogluon/01.model"
+        / "Result-a1234_selfv2_MimiceICU_AUMC_CorrMICfilt"
     )
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model-dir", type=Path, default=frozen)
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=Path("results/revision/W4_classifier_validation"),
+        default=repo / "02_revision_outputs/reports/W4_classifier_validation",
     )
     parser.add_argument("--bootstrap", type=int, default=1000)
     return parser.parse_args()

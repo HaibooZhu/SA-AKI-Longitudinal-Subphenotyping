@@ -1,0 +1,13 @@
+model,cohort,comparison,n_pair,auc_pair_normalized
+archived_AutoGluon_XGBoost_BAG_L2,internal_MIMIC_eICU,DR vs RR,1137,0.8627098720251958
+archived_AutoGluon_XGBoost_BAG_L2,internal_MIMIC_eICU,DR vs PW,429,0.7739757456571617
+archived_AutoGluon_XGBoost_BAG_L2,internal_MIMIC_eICU,RR vs PW,888,0.9470342522974102
+simple_six_variable_logistic,internal_MIMIC_eICU,DR vs RR,1137,0.8165879300019961
+simple_six_variable_logistic,internal_MIMIC_eICU,DR vs PW,429,0.7908226810881678
+simple_six_variable_logistic,internal_MIMIC_eICU,RR vs PW,888,0.9288638262322473
+archived_AutoGluon_XGBoost_BAG_L2,external_AUMC,DR vs RR,1964,0.8184523809523808
+archived_AutoGluon_XGBoost_BAG_L2,external_AUMC,DR vs PW,783,0.6532675928624632
+archived_AutoGluon_XGBoost_BAG_L2,external_AUMC,RR vs PW,1619,0.9334735812133073
+simple_six_variable_logistic,external_AUMC,DR vs RR,1964,0.827670972644377
+simple_six_variable_logistic,external_AUMC,DR vs PW,783,0.6645616762200849
+simple_six_variable_logistic,external_AUMC,RR vs PW,1619,0.9125929549902152

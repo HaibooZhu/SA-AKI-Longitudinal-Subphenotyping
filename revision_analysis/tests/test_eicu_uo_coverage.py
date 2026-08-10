@@ -41,3 +41,38 @@ def test_coverage_uses_fixed_planned_denominator():
     assert coverage.loc[1, "documented_fraction_planned"] == 4 / 30
     assert coverage.loc[2, "documented_fraction_available"] == 15 / 20
     assert coverage.loc[2, "documented_fraction_planned"] == 0.5
+
+
+def test_aggregation_audit_selects_mean_from_reconstructed_windows():
+    archived = pd.Series([10.0, 20.0, 30.0, 40.0])
+    result = MODULE.audit_aggregation_rule(
+        archived,
+        pd.Series([20.0, 40.0, 60.0, 80.0]),
+        pd.Series([10.0, 20.0, 30.0, 40.0]),
+    )
+    assert result["passed"] is True
+    assert result["selected_rule"] == "mean"
+    assert result["mean_exact_match_fraction"] == 1.0
+
+
+def test_aggregation_audit_can_select_sum():
+    archived = pd.Series([10.0, 20.0, 30.0, 40.0])
+    result = MODULE.audit_aggregation_rule(
+        archived,
+        pd.Series([10.0, 20.0, 30.0, 40.0]),
+        pd.Series([5.0, 10.0, 15.0, 20.0]),
+    )
+    assert result["passed"] is True
+    assert result["selected_rule"] == "sum"
+
+
+def test_aggregation_audit_fails_when_neither_rule_reconstructs_archive():
+    archived = pd.Series([10.0, 20.0, 30.0, 40.0])
+    result = MODULE.audit_aggregation_rule(
+        archived,
+        pd.Series([11.0, 21.0, 31.0, 41.0]),
+        pd.Series([9.0, 19.0, 29.0, 39.0]),
+    )
+    assert result["passed"] is False
+    assert result["selected_rule"] is None
+    assert result["status"] == "FAIL_UO_AGGREGATION_NOT_RECONSTRUCTED"

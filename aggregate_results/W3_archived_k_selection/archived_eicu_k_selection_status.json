@@ -1,0 +1,9 @@
+{
+  "overall_status": "PASS_WITH_ARCHIVE_LIMITATIONS",
+  "archived_candidate_k": [2, 3, 4, 5],
+  "selected_k": 3,
+  "unsupported_k": [6, 7, 8],
+  "probability_scaling": "none",
+  "patient_level_output_written": false,
+  "archive_sha256": "7fbd4265968a68b99c6948a86ef997e09c5e55daacaa4716ebd3af0dcaf22193"
+}
