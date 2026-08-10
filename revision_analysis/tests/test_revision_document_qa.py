@@ -164,6 +164,32 @@ def test_figure_s2_asset_identity_falls_back_to_pixel_comparison(tmp_path):
     assert identity["exact_match"] is True
 
 
+def test_all_revised_figure_assets_are_checked(tmp_path):
+    supplement = tmp_path / "supplement.docx"
+    figure_s2 = tmp_path / "figure_s2.png"
+    Image.new("RGB", (40, 30), (20, 40, 80)).save(figure_s2)
+    build_supplement(supplement, figure_path=figure_s2)
+    document = Document(supplement)
+    sources = {"figure_s2": figure_s2}
+    for index, (figure_id, (caption, _)) in enumerate(
+        MODULE.SUPPLEMENT_FIGURE_SOURCES.items()
+    ):
+        if figure_id == "figure_s2":
+            continue
+        figure = tmp_path / f"{figure_id}.png"
+        Image.new("RGB", (40, 30), (20 + index, 40, 80)).save(figure)
+        paragraph = document.add_paragraph()
+        paragraph.add_run().add_picture(str(figure))
+        document.add_paragraph(f"{caption} Revised figure asset.")
+        sources[figure_id] = figure
+    document.save(supplement)
+    identities = MODULE.supplement_checks(
+        supplement, figure_sources=sources
+    )["figure_asset_identities"]
+    assert set(identities) == set(MODULE.SUPPLEMENT_FIGURE_SOURCES)
+    assert all(identity["exact_match"] for identity in identities.values())
+
+
 def test_required_content_checks_cover_all_submission_guardrails():
     text = """
     AmsterdamUMCdb used the other three responses because BUN was unavailable.

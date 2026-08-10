@@ -18,6 +18,10 @@ import pandas as pd
 from scipy.optimize import linear_sum_assignment
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
 
+plt.rcParams["font.family"] = "sans-serif"
+plt.rcParams["font.sans-serif"] = ["Arial", "DejaVu Sans", "Liberation Sans"]
+plt.rcParams["svg.fonttype"] = "none"
+
 
 STYLE_DIR = Path(__file__).resolve().parents[1] / "07_tables_figures"
 sys.path.insert(0, str(STYLE_DIR))
@@ -35,9 +39,9 @@ from publication_figure_style import (  # noqa: E402
 
 PHENOTYPE = {1: "DR", 2: "RR", 3: "PW"}
 FEATURE_LABEL = {
-    "bun": "BUN",
-    "creatinine": "Creatinine",
-    "urineoutput": "Urine output per 6-h window",
+    "bun": "BUN (mg/dL)",
+    "creatinine": "Creatinine (mg/dL)",
+    "urineoutput": "Urine output (mL/6 h)",
     "crea_divide_basecrea": "Creatinine / baseline creatinine",
 }
 

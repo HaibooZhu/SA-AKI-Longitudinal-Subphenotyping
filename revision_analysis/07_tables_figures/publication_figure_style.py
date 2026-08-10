@@ -29,10 +29,10 @@ PHENOTYPE_COLORS = {
     "PW": "#C7773E",
 }
 K_COLORS = {
-    2: PHENOTYPE_COLORS["DR"],
-    3: PHENOTYPE_COLORS["PW"],
-    4: "#858585",
-    5: "#B5B5B5",
+    2: "#40566F",
+    3: "#738399",
+    4: "#9BA6B2",
+    5: "#C2C8CE",
 }
 STATUS_COLORS = {"PASS": "#3F6B48", "CAUTION": "#8A4740"}
 
