@@ -53,6 +53,8 @@ EVIDENCE_FILES = (
     "W3_deep_k_stability/deep_k_k3_pairwise_stability.csv",
     "W3_deep_k_stability/deep_k_cohort_summary.csv",
     "W3_deep_k_stability/deep_k_status.json",
+    "W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.png",
+    "W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.pdf",
     "W3_cross_cohort_robustness/W3_CROSS_COHORT_SCENARIO_MANIFEST.md",
     "W3_cross_cohort_robustness/cross_cohort_scenario_manifest.csv",
     "W3_cross_cohort_robustness/W3_CROSS_COHORT_ROBUSTNESS_REFITS.md",

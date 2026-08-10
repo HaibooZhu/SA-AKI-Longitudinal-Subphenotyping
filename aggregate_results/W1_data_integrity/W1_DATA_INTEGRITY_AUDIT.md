@@ -30,9 +30,9 @@ These are audit flags, not automatic corrections. They require confirmation agai
 | Bilirubin | 17.40 | 2.436 | 19.87 | 1.141 |
 | Hematocrit | 14.00 | 29.92 | 2.25 | 31.51 |
 
-## Methodological note requiring author decision
+## Resolution
 
-The table-generation script constructs a patient-day urine-output sum in `df_fea_add`, but then does not use that object. Table S3 instead summarizes `urineoutput` from the original six-hour rows using an arithmetic mean. Before submission, the caption and Methods must either describe this as mean six-hour urine output or the table must be regenerated from patient-day sums.
+The table-generation script constructs a patient-day urine-output sum in `df_fea_add`, but then does not use that object. Table S3 instead summarizes `urineoutput` from the original six-hour rows using an arithmetic mean. The final Methods, caption, and regenerated Table S3 therefore consistently define this quantity as mean six-hour-window urine output, not a patient-day sum. This reporting choice has been resolved and no author decision remains pending.
 
 ## Files produced
 

@@ -46,4 +46,7 @@ precludes direct pooling.
 
 Every prespecified initialization, including poorly mixing or degenerate fits, is
 reported. The experiment evaluates whether a three-pattern representation can be
-reproduced; it does not establish K=3 as the unique true taxonomy.
+reproduced; it does not establish K=3 as the unique true taxonomy. The deep-fit
+composite score uses the same normalization scope as the fresh grid: deviance and
+lag-1 failure are min-max scaled within each cohort and initialization before K=2
+and K=3 are compared.
