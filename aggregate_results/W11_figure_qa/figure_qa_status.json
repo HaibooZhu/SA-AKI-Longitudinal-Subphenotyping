@@ -1,17 +1,80 @@
 {
   "overall_status": "PASS",
-  "generated_at_utc": "2026-08-10T10:59:13.402600+00:00",
+  "generated_at_utc": "2026-08-13T04:07:01.331829+00:00",
   "figure_count": 7,
   "artifact_count": 28,
   "artifact_pass_count": 28,
   "visual_review": {
-    "Figure S2": "PASS",
-    "Figure S10": "PASS",
-    "Figure S11a": "PASS",
-    "Figure S11b": "PASS",
-    "Figure S12": "PASS",
-    "Figure S13": "PASS",
-    "Figure S14": "PASS"
+    "Figure S2": {
+      "status": "PASS",
+      "reviewed_png_sha256": "e3bb7ec11da9da9b789b4b48a211669886c7e711a524cb0c1be6f5789db051d6",
+      "current_png_sha256": "e3bb7ec11da9da9b789b4b48a211669886c7e711a524cb0c1be6f5789db051d6",
+      "hash_match": true,
+      "reviewed_by": "Codex visual QA",
+      "reviewed_at": "2026-08-10T05:45:07-04:00",
+      "criteria_pass": true,
+      "metadata_complete": true
+    },
+    "Figure S10": {
+      "status": "PASS",
+      "reviewed_png_sha256": "d7642074c9dd489558aa93eb674d41ffc73abf8c71c00e5661953c523b0c2705",
+      "current_png_sha256": "d7642074c9dd489558aa93eb674d41ffc73abf8c71c00e5661953c523b0c2705",
+      "hash_match": true,
+      "reviewed_by": "Codex visual QA",
+      "reviewed_at": "2026-08-10T05:45:07-04:00",
+      "criteria_pass": true,
+      "metadata_complete": true
+    },
+    "Figure S11a": {
+      "status": "PASS",
+      "reviewed_png_sha256": "de103349a0be6532705e72aac137ac6e5bba58876edf8522abd22a0454acee06",
+      "current_png_sha256": "de103349a0be6532705e72aac137ac6e5bba58876edf8522abd22a0454acee06",
+      "hash_match": true,
+      "reviewed_by": "Codex visual QA",
+      "reviewed_at": "2026-08-10T06:23:32-04:00",
+      "criteria_pass": true,
+      "metadata_complete": true
+    },
+    "Figure S11b": {
+      "status": "PASS",
+      "reviewed_png_sha256": "c25c6305cbe797cba8887143cc86148f20541b5f95b425796f902742cec665d9",
+      "current_png_sha256": "c25c6305cbe797cba8887143cc86148f20541b5f95b425796f902742cec665d9",
+      "hash_match": true,
+      "reviewed_by": "Codex visual QA",
+      "reviewed_at": "2026-08-10T06:23:32-04:00",
+      "criteria_pass": true,
+      "metadata_complete": true
+    },
+    "Figure S12": {
+      "status": "PASS",
+      "reviewed_png_sha256": "cf54a91e389684d532dc53c613378d885cb7a5c05087ba606d99a27aac5c041a",
+      "current_png_sha256": "cf54a91e389684d532dc53c613378d885cb7a5c05087ba606d99a27aac5c041a",
+      "hash_match": true,
+      "reviewed_by": "Codex visual QA",
+      "reviewed_at": "2026-08-10T05:45:07-04:00",
+      "criteria_pass": true,
+      "metadata_complete": true
+    },
+    "Figure S13": {
+      "status": "PASS",
+      "reviewed_png_sha256": "3f266eed4e512edc369e5765f642470f49ba91c9cb65c28ae42063b5a60bcd3f",
+      "current_png_sha256": "3f266eed4e512edc369e5765f642470f49ba91c9cb65c28ae42063b5a60bcd3f",
+      "hash_match": true,
+      "reviewed_by": "Codex visual QA",
+      "reviewed_at": "2026-08-10T05:45:07-04:00",
+      "criteria_pass": true,
+      "metadata_complete": true
+    },
+    "Figure S14": {
+      "status": "PASS",
+      "reviewed_png_sha256": "00078836cd7952fd60e77797fe3a424cda0e8fa708a243eb13eae2fc425bc4e7",
+      "current_png_sha256": "00078836cd7952fd60e77797fe3a424cda0e8fa708a243eb13eae2fc425bc4e7",
+      "hash_match": true,
+      "reviewed_by": "Codex visual QA",
+      "reviewed_at": "2026-08-10T05:45:07-04:00",
+      "criteria_pass": true,
+      "metadata_complete": true
+    }
   },
   "criteria": {
     "formats": [
