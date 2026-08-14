@@ -34,7 +34,7 @@ W3_deep_k_stability/deep_k_cohort_summary.csv,,3.0,12.0,,,
 W3_deep_k_stability/deep_k_status.json,,,,True,,
 W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.png,,,,,198411.0,e3bb7ec11da9da9b789b4b48a211669886c7e711a524cb0c1be6f5789db051d6
 W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.pdf,,,,,45334.0,66e1a1b8531bd4d498a675b1e653be904664159dc0984a6b750ce44741b090ae
-W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.svg,,,,,64170.0,83884d739e1b40800c22633dd46837e2964ef38b7d2c20eb40bbe60342010df0
+W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.svg,,,,,64454.0,b8b16beb23a96ace67b37f9d8f8ac009abf13fb5a481ccb9d192296390a63ef0
 W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.tiff,,,,,800502.0,7fed39a0cab1817c7b5ec8b75e4fcce7e0741fa58b0e98c6429414f4a1ec1ebc
 W3_cross_cohort_robustness/W3_CROSS_COHORT_SCENARIO_MANIFEST.md,True,,,,,
 W3_cross_cohort_robustness/cross_cohort_scenario_manifest.csv,,15.0,9.0,,,
@@ -43,7 +43,7 @@ W3_cross_cohort_robustness/cross_cohort_robustness_metrics.csv,,15.0,17.0,,,
 W3_cross_cohort_robustness/robustness_refit_status.json,,,,True,,
 W3_cross_cohort_robustness/cross_cohort_robustness_matrix.png,,,,,142538.0,d7642074c9dd489558aa93eb674d41ffc73abf8c71c00e5661953c523b0c2705
 W3_cross_cohort_robustness/cross_cohort_robustness_matrix.pdf,,,,,41412.0,7272839ca80939cbe9701befea037583263cc38e3d3ba435726d44f7fc1c72a8
-W3_cross_cohort_robustness/cross_cohort_robustness_matrix.svg,,,,,31590.0,b3b58e6a595d3bcee53fd5785f6e41a4e8a374b4a8dc8edff89e901bb1f5deda
+W3_cross_cohort_robustness/cross_cohort_robustness_matrix.svg,,,,,31792.0,242a0bf6ec6028655345ee7a1f9e81e5c8091319392c19f6f4d9afd31f5ee2e4
 W3_cross_cohort_robustness/cross_cohort_robustness_matrix.tiff,,,,,604224.0,4fb038b9ce845889c0e3f584f53ca3e4d9f21bbf5a4f5453c6853a68491c4e72
 W3_cluster_robustness/documented_windows_cluster_sensitivity.png,,,,,651466.0,de103349a0be6532705e72aac137ac6e5bba58876edf8522abd22a0454acee06
 W3_cluster_robustness/documented_windows_cluster_sensitivity.pdf,,,,,55067.0,a517af2e3e100b5ec75c46ee562874e5f51e95ac9b56ace9a6d2059d73b2ff31
@@ -79,7 +79,7 @@ W4_classifier_validation/W4_classifier_revalidation.svg,,,,,46866.0,1113b213f73d
 W4_classifier_validation/W4_classifier_revalidation.tiff,,,,,1556976.0,ecda27244524e14f96966e1169a336d4fd10de52f5736cd4112553dc8104e9ac
 W4_classifier_validation/Figure_S12_archived_model_calibration_comparator.png,,,,,356636.0,cf54a91e389684d532dc53c613378d885cb7a5c05087ba606d99a27aac5c041a
 W4_classifier_validation/Figure_S12_archived_model_calibration_comparator.pdf,,,,,43709.0,2d3523f0442f2c564768b0aad7bad637e9f697c7cd8c5676609c8066addd38a0
-W4_classifier_validation/Figure_S12_archived_model_calibration_comparator.svg,,,,,52300.0,e68c4284493653e95e2d3fe3bcb79acd5dfedbcbf6f9d667f7e06fa730acb29d
+W4_classifier_validation/Figure_S12_archived_model_calibration_comparator.svg,,,,,52507.0,dc65eefc8ef49178b026a901cf07b1658cfc0bb8348a7ed69a59701a70f46116
 W4_classifier_validation/Figure_S12_archived_model_calibration_comparator.tiff,,,,,1188816.0,24d00f3a4c58acf2bf9e445d57c31568979d5b01007481f52202a5622f445ec6
 W5_independent_outcomes/W5_INDEPENDENT_OUTCOMES.md,True,,,,,
 W5_independent_outcomes/outcome_source_lineage.csv,,3.0,8.0,,,
@@ -90,7 +90,7 @@ W5_independent_outcomes/mortality_standardized_risks.csv,,18.0,12.0,,,
 W5_independent_outcomes/outcome_model_missingness.csv,,15.0,9.0,,,
 W5_independent_outcomes/W5_adjusted_outcomes_forest.png,,,,,159204.0,3f266eed4e512edc369e5765f642470f49ba91c9cb65c28ae42063b5a60bcd3f
 W5_independent_outcomes/W5_adjusted_outcomes_forest.pdf,,,,,40839.0,59ae76696f2dad6f48aae548aaf50d7650ee9c105f690c2c8667c5000c4eff4e
-W5_independent_outcomes/W5_adjusted_outcomes_forest.svg,,,,,31512.0,56abbbf253bd7eba49d92e282df79db2c2e971733a05dd00c37fd9b59ba92cad
+W5_independent_outcomes/W5_adjusted_outcomes_forest.svg,,,,,31628.0,c2526b4ce432dfc4551638eadb0baa59f0482a332850fe00a924d111d0097ca2
 W5_independent_outcomes/W5_adjusted_outcomes_forest.tiff,,,,,801298.0,0f268743433c612f79b7feddea6f3c64e99d571e1ecb29fb4c7f0a188a7c23fb
 W6_diuretic_exploratory/W6_DIURETIC_EXPLORATORY.md,True,,,,,
 W6_diuretic_exploratory/historical_matching_spec.csv,,6.0,7.0,,,

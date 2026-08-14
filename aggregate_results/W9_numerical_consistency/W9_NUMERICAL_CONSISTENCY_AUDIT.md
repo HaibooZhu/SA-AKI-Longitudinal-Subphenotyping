@@ -2,7 +2,7 @@
 
 **Status: PASS_FINAL_NUMERICAL_CONSISTENCY_AUDIT**
 
-- Checks passed: 57 / 57
+- Checks passed: 58 / 58
 - Failed check IDs: None
 - Documents: clean manuscript, highlighted manuscript, supplement, and point-by-point response
 - Sources: aggregate revision reports and regenerated longitudinal tables
@@ -22,7 +22,7 @@
 | mortality | 4 | 4 |
 | population | 6 | 6 |
 | robustness | 3 | 3 |
-| urine_output_sensitivity | 2 | 2 |
+| urine_output_sensitivity | 3 | 3 |
 
 ## Scope boundary
 

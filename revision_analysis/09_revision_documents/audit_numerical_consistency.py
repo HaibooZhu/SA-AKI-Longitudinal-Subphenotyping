@@ -692,14 +692,22 @@ def add_text_checks(
         checks, check_id="response.k_uo_primary", category="cluster_robustness",
         source="W3_fresh_k_grid; W3_deep_k_stability",
         document_name=DOCUMENTS["response"], document=response,
-        anchor="Cluster number and initialization.", tokens=[k_token],
+        anchor="Cluster number and initialization.",
+        tokens=["2/3 MIMIC-IV", "1/3 eICU-CRD", "2/3 AmsterdamUMCdb"],
         location="E.2 response",
     )
     check_anchor_tokens(
-        checks, check_id="response.uo_repeated", category="urine_output_sensitivity",
+        checks, check_id="response.uo_documented_windows", category="urine_output_sensitivity",
         source="W3_uo_multiseed_sensitivity/uo_multiseed_scenario_summary.csv",
         document_name=DOCUMENTS["response"], document=response,
-        anchor="The documented-window sensitivity retained", tokens=uo_tokens,
+        anchor="The documented-window sensitivity retained", tokens=uo_tokens[:3],
+        location="R1.4 response",
+    )
+    check_anchor_tokens(
+        checks, check_id="response.uo_high_coverage", category="urine_output_sensitivity",
+        source="W3_uo_multiseed_sensitivity/uo_multiseed_scenario_summary.csv",
+        document_name=DOCUMENTS["response"], document=response,
+        anchor="The stricter ≥50%-coverage restriction retained", tokens=uo_tokens[3:],
         location="R1.4 response",
     )
     check_anchor_tokens(

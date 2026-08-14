@@ -23,7 +23,7 @@ class Requirement:
 
 REQUIREMENTS = (
     Requirement("E.1 Comprehensive data-integrity audit", ("zero mismatches", "22 mismatches"), ("reporting-layer artifact", "was not read"), ("Tables S3-S5", "data dictionary")),
-    Requirement("E.2 Robustness to data-processing assumptions", ("only one of three", "415 patients"), ("material limitations", "could not be reconstructed"), ("Figure S2", "Tables S15c-S16", "Figures S10-S11")),
+    Requirement("E.2 Robustness to data-processing assumptions", ("Thirteen of 33", "415 patients"), ("not representative", "could not be reconstructed"), ("Figure S2", "Tables S15c-S15j", "Table S16b", "Figures S10-S11")),
     Requirement("E.3 Phenotype definition versus independent validation", ("adjusted ORs", "9.89 (95% CI 7.73–12.66)"), ("residual confounding",), ("Table S18", "Figure S13")),
     Requirement("E.4 Diuretic-responsiveness analysis", ("0.592", "1.129"), ("exploratory", "treatment effect"), ("Table S19", "Figure S14")),
     Requirement("E.5 Balanced early-classifier evaluation", ("0.836", "0.769", "0.653"), ("no external incremental value", "prospective"), ("Table S17", "Figure S12")),
@@ -31,11 +31,11 @@ REQUIREMENTS = (
     Requirement("R1.1 Repositioning and confounding of diuretic responsiveness", ("residual SMDs", "did not replicate"), ("secondary, exploratory", "unmeasured"), ("Table S19",)),
     Requirement("R1.2 Rebalancing classifier performance claims", ("DR-versus-PW", "macro internal and external"), ("weaker",), ("Tables S17a-S17c", "Figure S12")),
     Requirement("R1.3 Critical data-integrity flag in Table S3", ("22 sequential values", "zero source-to-generated mismatches"), ("did not affect",), ("Table S3", "provenance")),
-    Requirement("R1.4 Missing urine output and fluid balance", ("1,043 patients", "415 patients", "none of the three"), ("limit the stability",), ("Table S16", "Figures S11a-S11b")),
-    Requirement("R1.m1 Baseline creatinine clarification", ("was not imputed", "<0.5 or ≥1.5"), ("selection boundary",), ("Figure S1",)),
+    Requirement("R1.4 Missing urine output and fluid balance", ("1,043 patients", "415 patients", "produced no PW component"), ("limits the stability",), ("Table S16", "Figures S11a-S11b")),
+    Requirement("R1.m1 Baseline creatinine clarification", ("was not imputed", "<0.5 or ≥1.5"), ("generalizability consequence",), ("Figure S1",)),
     Requirement("R1.m2 Literature-search validity", ("9 August 2026", "2026 SA-AKI"), ("removed the unqualified first-ever novelty claim",), ("References 31-35",)),
     Requirement("R1.m3 Citation formatting consistency", ("sequential Arabic numerals", "superscript square brackets", "after punctuation"), (), ("References",)),
-    Requirement("R1.m4 Nonstandard clustering metric", ("2/3 MIMIC-IV", "1/3 eICU-CRD", "2/3 AmsterdamUMCdb"), ("not a validated universal criterion", "does not establish k=3"), ("Table S1", "Tables S15c-S15e", "Figure S2")),
+    Requirement("R1.m4 Nonstandard clustering metric", ("2/3 MIMIC-IV", "1/3 eICU-CRD", "2/3 AmsterdamUMCdb"), ("not a validated universal criterion", "establishes k=3 as a unique true taxonomy"), ("Table S1", "Tables S15c-S15e", "Figure S2")),
     Requirement("R1.m5 AmsterdamUMCdb hospital outcome limitation", ("unavailable in AmsterdamUMCdb",), ("restricted to ICU and 28-day outcomes",), ("Table 1",)),
 )
 

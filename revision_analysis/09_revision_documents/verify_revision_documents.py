@@ -21,7 +21,7 @@ REQUIRED_FILES = (
     "JTIM_Revised_Manuscript_highlight.docx",
     "JTIM_Revised_Supplementary_material.docx",
     "JTIM_Point-by-point_Response.docx",
-    "JTIM_逐点回复_中文工作版.docx",
+    "02_中文工作资料/JTIM_逐点回复_中文工作版.docx",
     "JTIM_Revised_Cover_Letter.docx",
     "JTIM_Revised_Highlights.docx",
     "JTIM_Revised_Title_Page.docx",
@@ -82,7 +82,7 @@ REQUIRED_CONTENT_PATTERNS: dict[str, tuple[str, ...]] = {
         r"eICU(?:-CRD)?.{0,260}initialization sensitivity",
     ),
     "high_coverage_uo_does_not_preserve_pw": (
-        r"(?:≥50%|50%-coverage).{0,500}(?:PW component collapsed|zero (?:median )?PW (?:prevalence|fraction)|PW (?:class|component).{0,60}collapse)",
+        r"(?:≥50%|50%-coverage).{0,800}(?:PW component collapsed|zero (?:median )?PW (?:prevalence|fraction)|(?:produced|yielded|contained|had) no PW (?:component|class)|absence of (?:the )?PW (?:component|class)|PW (?:class|component).{0,60}collapse)",
     ),
     "classifier_has_no_external_incremental_advantage": (
         r"(?:no external incremental (?:value|advantage)|did not improve.{0,140}externally)",
@@ -91,7 +91,7 @@ REQUIRED_CONTENT_PATTERNS: dict[str, tuple[str, ...]] = {
         r"diuretic.{0,450}(?:secondary.{0,80}exploratory|exploratory)",
     ),
     "complete_followup_and_missing_data_cautions": (
-        r"complete(?: 30-window)? follow-up.{0,280}(?:caution|sensitivity)",
+        r"(?:complete(?: 30-window)? follow-up|requiring all 30 planned windows).{0,360}(?:caution|sensitivity|non-representative|not representative|retains? only|selection)",
         r"(?:missing-data.{0,180}(?:sensitivity|rule|caution|refit)|sensitivity.{0,120}missing-data)",
     ),
     "k3_is_not_unanimous_or_uniquely_optimal": (

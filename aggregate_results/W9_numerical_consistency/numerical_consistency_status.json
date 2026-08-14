@@ -1,7 +1,7 @@
 {
   "overall_status": "PASS_FINAL_NUMERICAL_CONSISTENCY_AUDIT",
-  "checks_total": 57,
-  "checks_passed": 57,
+  "checks_total": 58,
+  "checks_passed": 58,
   "checks_failed": 0,
   "failed_check_ids": [],
   "category_summary": {
@@ -50,8 +50,8 @@
       "passed": 3
     },
     "urine_output_sensitivity": {
-      "total": 2,
-      "passed": 2
+      "total": 3,
+      "passed": 3
     }
   },
   "scope_note": "The audit verifies source-linked revision claims and regenerated tables. Legacy phenotype-characterizing recovery tables without a revision aggregate source are outside this automated source-to-location gate."
