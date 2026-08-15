@@ -7,7 +7,7 @@
   "missing_sections": [],
   "missing_word_sections": [],
   "extra_markdown_sections": [
-    "Corrections to our previous response",
+    "Corrections and additions we identified ourselves",
     "Major changes made in this revision",
     "New analyses and supplementary items",
     "R1.0 General evaluation"
@@ -19,8 +19,8 @@
     "w8_embedded_figures_passed": 7,
     "w8_embedded_figures_total": 7,
     "w9_status": "PASS_FINAL_NUMERICAL_CONSISTENCY_AUDIT",
-    "w9_checks_passed": 58,
-    "w9_checks_total": 58,
+    "w9_checks_passed": 61,
+    "w9_checks_total": 61,
     "w11_status": "PASS",
     "w11_artifacts_passed": 28,
     "w11_artifacts_total": 28,

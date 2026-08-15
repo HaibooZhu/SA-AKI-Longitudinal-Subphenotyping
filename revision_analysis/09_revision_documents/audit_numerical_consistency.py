@@ -64,6 +64,15 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=analysis / "02_revision_outputs/reports/W9_numerical_consistency",
     )
+    parser.add_argument(
+        "--table-s2-source",
+        type=Path,
+        default=(
+            analysis
+            / "02_revision_outputs/reports/W1_table_s2_audit/"
+            "eicu_table_s2_verified.csv"
+        ),
+    )
     return parser.parse_args()
 
 
@@ -139,6 +148,57 @@ def find_tables(document: Document, headers: list[str]) -> list:
         for table in document.tables
         if [cell.text.strip() for cell in table.rows[0].cells] == headers
     ]
+
+
+def check_table_s2_eicu(
+    checks: list[Check], *, document: Document, source_path: Path
+) -> None:
+    """Compare the eICU block of Table S2 to the current N=1,417 aggregate."""
+    source = pd.read_csv(source_path, dtype=str, keep_default_na=False)[
+        ["Characteristic", "Overall", "RR", "DR", "PW", "P value"]
+    ]
+    matches = [
+        table
+        for table in document.tables
+        if len(table.rows) >= 3
+        and len(table.columns) == 12
+        and table.rows[2].cells[0].text.strip() == "Patient number, N"
+    ]
+    if len(matches) == 1:
+        table = matches[0]
+        observed_by_label = {
+            row.cells[0].text.strip(): [
+                row.cells[0].text.strip(),
+                *[cell.text.strip() for cell in row.cells[7:12]],
+            ]
+            for row in table.rows[2:]
+        }
+        expected = frame_grid(source)
+        observed = [expected[0]] + [
+            observed_by_label.get(row[0], [row[0]]) for row in expected[1:]
+        ]
+        mismatches = grid_mismatches(expected, observed)
+    else:
+        expected = frame_grid(source)
+        observed = []
+        mismatches = [{"table_matches": len(matches)}]
+    checks.append(
+        Check(
+            check_id="supplement.table_s2_eicu",
+            category="data_integrity",
+            source="W1_table_s2_audit/eicu_table_s2_verified.csv",
+            document=DOCUMENTS["supplement"],
+            location="Table S2 — eICU-CRD block",
+            check_type="source_to_selected_table_cells",
+            expected=json.dumps(expected, ensure_ascii=False),
+            observed=json.dumps(observed, ensure_ascii=False),
+            passed=len(matches) == 1 and not mismatches,
+            details=json.dumps(
+                {"matching_tables": len(matches), "mismatches": mismatches},
+                ensure_ascii=False,
+            ),
+        )
+    )
 
 
 def grid_mismatches(
@@ -410,12 +470,17 @@ def supplementary_frames(report_root: Path) -> list[tuple[str, str, str, pd.Data
     )
     diuretic = diuretic[
         diuretic.response_definition.isin(
-            ["response_archived_first", "response_strict_10pct_200"]
+            [
+                "response_archived_first",
+                "response_strict_10pct_200",
+                "response_absolute_200",
+            ]
         )
     ].copy()
     diuretic["response_definition"] = diuretic["response_definition"].map({
         "response_archived_first": "Archived first-day threshold",
         "response_strict_10pct_200": "Strict ≥10% and ≥200 mL",
+        "response_absolute_200": "Absolute ≥200 mL",
     })
     diuretic["p_value"] = diuretic["p_value"].map(
         lambda value: "<0.001" if value < 0.001 else f"{value:.3f}"
@@ -785,6 +850,34 @@ def main() -> int:
         document_name=DOCUMENTS["supplement"], document=supplement,
         location="Table S1", frame=table_s1_frame(args.report_root),
     )
+    check_table_s2_eicu(
+        checks, document=supplement, source_path=args.table_s2_source
+    )
+    check_anchor_tokens(
+        checks,
+        check_id="supplement.table_s2_semantic_note",
+        category="data_integrity",
+        source="W1_table_s2_audit/eicu_table_s2_verified.csv",
+        document_name=DOCUMENTS["supplement"],
+        document=supplement,
+        anchor="For eICU-CRD, em dashes indicate",
+        tokens=[
+            "chronic pulmonary disease variables were unavailable",
+            "broader eICU pulmonary diagnosis category was not substituted",
+        ],
+        location="Table S2 note",
+    )
+    check_anchor_tokens(
+        checks,
+        check_id="response.table_s2_disclosure",
+        category="data_integrity",
+        source="W1_table_s2_audit/eicu_table_s2_verified.csv",
+        document_name=DOCUMENTS["response"],
+        document=documents["response"],
+        anchor="Final quality control also identified",
+        tokens=["N=1,417", "legacy", "descriptive", "not used"],
+        location="E.1 response",
+    )
     for table_id, category, source, frame in supplementary_frames(args.report_root):
         check_dataframe_table(
             checks, check_id=f"supplement.table_{table_id.lower()}", category=category,
@@ -895,7 +988,8 @@ def main() -> int:
             for category in sorted({check.category for check in checks})
         },
         "scope_note": (
-            "The audit verifies source-linked revision claims and regenerated tables. "
+            "The audit verifies source-linked revision claims, the regenerated eICU "
+            "Table S2 block, and regenerated longitudinal tables. "
             "Legacy phenotype-characterizing recovery tables without a revision aggregate "
             "source are outside this automated source-to-location gate."
         ),

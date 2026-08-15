@@ -160,6 +160,8 @@ Do not commit credential files, local path configuration, patient identifiers, d
 - The ≥50% urine-output coverage scenario uses the fixed 30-window denominator, not the number of available rows.
 - Numeric mixture labels are aligned to archived phenotypes before agreement statistics are calculated.
 - Data-audit outputs distinguish source-data discrepancies from workbook-rendering discrepancies.
+- The eICU-CRD block of Table S2 is regenerated from the current N=1,417 aggregate; incompatible diagnosis fields remain unavailable, and the broad `pulmonary` category is not relabelled as chronic pulmonary disease.
+- Table S19 and Figure S14 report the same three evaluated diuretic-response definitions, including the absolute ≥200 mL sensitivity definition.
 - Table S1 is checked cell for cell against its aggregate source CSV; embedded Figure S2 is checked against the released asset by SHA-256 with a pixel-comparison fallback.
 - The final numerical audit maps aggregate source results to repeated manuscript, supplement, and response-letter locations; detailed extracted prose remains private and is not published.
 - Figure QA requires editable SVG, valid PDF, 600-dpi TIFF, and preview PNG exports for Figures S2 and S10–S14, together with a recorded visual review for readability, clipping, overlap, and color semantics.

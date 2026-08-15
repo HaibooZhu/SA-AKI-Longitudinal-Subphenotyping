@@ -42,6 +42,12 @@ def test_required_editor_evidence_workstreams_are_whitelisted():
     )
     assert "W1_data_integrity/audit_status.json" in MODULE.EVIDENCE_FILES
     assert (
+        "W1_table_s2_audit/eicu_table_s2_verified.csv" in MODULE.EVIDENCE_FILES
+    )
+    assert (
+        "W1_table_s2_audit/table_s2_audit_status.json" in MODULE.EVIDENCE_FILES
+    )
+    assert (
         "W6_diuretic_exploratory/early_first_dose_interaction_tests.csv"
         in MODULE.EVIDENCE_FILES
     )

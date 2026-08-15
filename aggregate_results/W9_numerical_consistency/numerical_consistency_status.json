@@ -1,7 +1,7 @@
 {
   "overall_status": "PASS_FINAL_NUMERICAL_CONSISTENCY_AUDIT",
-  "checks_total": 58,
-  "checks_passed": 58,
+  "checks_total": 61,
+  "checks_passed": 61,
   "checks_failed": 0,
   "failed_check_ids": [],
   "category_summary": {
@@ -20,6 +20,10 @@
     "cross_document_identity": {
       "total": 1,
       "passed": 1
+    },
+    "data_integrity": {
+      "total": 3,
+      "passed": 3
     },
     "diuretic": {
       "total": 5,
@@ -54,5 +58,5 @@
       "passed": 3
     }
   },
-  "scope_note": "The audit verifies source-linked revision claims and regenerated tables. Legacy phenotype-characterizing recovery tables without a revision aggregate source are outside this automated source-to-location gate."
+  "scope_note": "The audit verifies source-linked revision claims, the regenerated eICU Table S2 block, and regenerated longitudinal tables. Legacy phenotype-characterizing recovery tables without a revision aggregate source are outside this automated source-to-location gate."
 }

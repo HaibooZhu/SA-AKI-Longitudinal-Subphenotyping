@@ -110,3 +110,46 @@ def test_grid_mismatch_reports_exact_cell_coordinates():
     assert mismatches == [
         {"row": 1, "column": 1, "expected": "1.000", "observed": "1.001"}
     ]
+
+
+def test_table_s2_eicu_audit_fails_on_a_mixed_denominator_cell(tmp_path):
+    source = tmp_path / "table_s2.csv"
+    pd.DataFrame(
+        [
+            {
+                "Characteristic": "Patient number, N",
+                "Overall": "1417",
+                "RR": "869",
+                "DR": "423",
+                "PW": "125",
+                "P value": "",
+            },
+            {
+                "Characteristic": "Myocardial infarct, n (%)",
+                "Overall": "47 (3.3)",
+                "RR": "20 (2.3)",
+                "DR": "19 (4.5)",
+                "PW": "8 (6.4)",
+                "P value": "0.016",
+            },
+        ]
+    ).to_csv(source, index=False)
+    document = Document()
+    table = document.add_table(rows=2, cols=12)
+    for label, values in [
+        ("Patient number, N", ["1417", "869", "423", "125", ""]),
+        ("Myocardial infarct, n (%)", ["62 (3.1)", "20 (2.3)", "19 (4.5)", "8 (6.4)", "0.016"]),
+    ]:
+        cells = table.add_row().cells
+        cells[0].text = label
+        for cell, value in zip(cells[7:12], values):
+            cell.text = value
+    checks = []
+    MODULE.check_table_s2_eicu(checks, document=document, source_path=source)
+    assert checks[0].passed is False
+    assert "62 (3.1)" in checks[0].details
+
+    table.rows[3].cells[7].text = "47 (3.3)"
+    checks = []
+    MODULE.check_table_s2_eicu(checks, document=document, source_path=source)
+    assert checks[0].passed is True
