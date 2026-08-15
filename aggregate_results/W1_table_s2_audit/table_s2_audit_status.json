@@ -1,0 +1,12 @@
+{
+  "overall_status": "PASS_TABLE_S2_AUTHORITY_AUDIT",
+  "authoritative_source_sha256": "5cbf4f7616610535b256020e1d64639d1f393052c00d0ca047f127a823705fd6",
+  "authoritative_overall_n": 1417,
+  "phenotype_denominators": {
+    "RR": 869,
+    "DR": 423,
+    "PW": 125
+  },
+  "broad_pulmonary_substituted_for_chronic_pulmonary": false,
+  "publication_rows": 12
+}

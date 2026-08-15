@@ -1,0 +1,13 @@
+Characteristic,Overall,RR,DR,PW,P value,Source field,Availability note
+"Patient number, N",1417,869,423,125,,n,Current analysed cohort denominators
+"Myocardial infarct, n (%)",47 (3.3),20 (2.3),19 (4.5),8 (6.4),0.016,"Myocardial infarct, n (%)",
+"Congestive heart failure, n (%)",178 (12.6),87 (10.0),76 (18.0),15 (12.0),<0.001,"Congestive heart failure, n (%)",
+"Peripheral vascular disease, n (%)",—,—,—,—,—,Not available,Compatible eICU diagnosis field unavailable
+"Cerebrovascular disease, n (%)",—,—,—,—,—,Not available,Compatible eICU diagnosis field unavailable
+"Chronic pulmonary disease, n (%)",—,—,—,—,—,Not available,Broad eICU pulmonary category is not definitionally compatible and was not substituted
+"Hepatic disease, n (%)",92 (6.5),41 (4.7),34 (8.0),17 (13.6),<0.001,"Hepatic, n (%)",
+"Diabetes, n (%)",250 (17.6),135 (15.5),96 (22.7),19 (15.2),0.005,"Diabetes, n (%)",
+"Hypertension, n (%)",275 (19.4),170 (19.6),86 (20.3),19 (15.2),0.436,"Hypertension, n (%)",
+"Respiratory failure, n (%)",620 (43.8),346 (39.8),207 (48.9),67 (53.6),0.001,"Respiratory failure, n (%)",
+"Septic shock, n (%)",466 (32.9),278 (32.0),137 (32.4),51 (40.8),0.142,"Septic shock, n (%)",
+"Acidosis, n (%)",115 (8.1),61 (7.0),37 (8.7),17 (13.6),0.036,"Acidosis, n (%)",

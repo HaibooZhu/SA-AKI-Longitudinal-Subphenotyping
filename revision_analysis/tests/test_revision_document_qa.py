@@ -177,6 +177,20 @@ def test_required_content_checks_cover_all_submission_guardrails():
     assert all(MODULE.required_content_checks(text).values())
 
 
+def test_required_content_checks_accept_final_response_wording():
+    text = """
+    AmsterdamUMCdb used the other three responses because BUN was unavailable.
+    eICU-CRD retained initialization sensitivity. The stricter ≥50%-coverage
+    subset retained 415 patients and produced no PW component in any initialization.
+    The classifier showed no external incremental advantage over logistic regression.
+    The diuretic analysis remains secondary and exploratory. RRT, complete follow-up,
+    and missing-data rules were audited. Requiring all 30 planned windows retains only
+    24.6%-27.2% of patients, and those populations are non-representative. The screening
+    grid did not select k=3 unanimously.
+    """
+    assert all(MODULE.required_content_checks(text).values())
+
+
 def test_required_content_checks_fail_when_a_guardrail_is_missing():
     checks = MODULE.required_content_checks(
         "AmsterdamUMCdb used the other three responses; eICU retained initialization sensitivity."

@@ -22,21 +22,21 @@ class Requirement:
 
 
 REQUIREMENTS = (
-    Requirement("E.1 Comprehensive data-integrity audit", ("zero mismatches", "22 mismatches"), ("reporting artifact", "was not used"), ("Tables S3–S5", "data dictionary")),
-    Requirement("E.2 Robustness to data-processing assumptions", ("one of three", "415 patients"), ("material sensitivity", "could not be reconstructed"), ("Figure S2", "S15d–S16", "Figures S10–S11")),
-    Requirement("E.3 Phenotype definition versus independent validation", ("adjusted ORs", "95% CIs excluded 1"), ("residual confounding",), ("Table S18", "Figure S13")),
+    Requirement("E.1 Comprehensive data-integrity audit", ("zero mismatches", "22 mismatches"), ("reporting-layer artifact", "was not read"), ("Tables S3-S5", "data dictionary")),
+    Requirement("E.2 Robustness to data-processing assumptions", ("Thirteen of 33", "415 patients"), ("not representative", "could not be reconstructed"), ("Figure S2", "Tables S15c-S15j", "Table S16b", "Figures S10-S11")),
+    Requirement("E.3 Phenotype definition versus independent validation", ("adjusted ORs", "9.89 (95% CI 7.73–12.66)"), ("residual confounding",), ("Table S18", "Figure S13")),
     Requirement("E.4 Diuretic-responsiveness analysis", ("0.592", "1.129"), ("exploratory", "treatment effect"), ("Table S19", "Figure S14")),
     Requirement("E.5 Balanced early-classifier evaluation", ("0.836", "0.769", "0.653"), ("no external incremental value", "prospective"), ("Table S17", "Figure S12")),
     Requirement("E.6 Translational claims and positioning", ("cross-cohort reproducibility",), ("future research requirement",), ()),
-    Requirement("R1.1 Repositioning and confounding of diuretic responsiveness", ("residual SMDs", "did not replicate"), ("secondary and exploratory", "unmeasured"), ("Table S19",)),
-    Requirement("R1.2 Rebalancing classifier performance claims", ("DR-versus-PW", "macro internal/external"), ("weaker",), ("Table S17", "Figure S12")),
+    Requirement("R1.1 Repositioning and confounding of diuretic responsiveness", ("residual SMDs", "did not replicate"), ("secondary, exploratory", "unmeasured"), ("Table S19",)),
+    Requirement("R1.2 Rebalancing classifier performance claims", ("DR-versus-PW", "macro internal and external"), ("weaker",), ("Tables S17a-S17c", "Figure S12")),
     Requirement("R1.3 Critical data-integrity flag in Table S3", ("22 sequential values", "zero source-to-generated mismatches"), ("did not affect",), ("Table S3", "provenance")),
-    Requirement("R1.4 Missing urine output and fluid balance", ("1,043 patients", "415 patients", "failed all three"), ("materially limit",), ("Table S16", "Figure S11")),
-    Requirement("R1.m1 Baseline creatinine clarification", ("was not imputed", "<0.5 or ≥1.5"), ("selection boundary",), ("Figure S1",)),
-    Requirement("R1.m2 Literature-search validity", ("9 August 2026", "2026 SA-AKI"), ("novelty claim was therefore removed",), ("References 31–35",)),
-    Requirement("R1.m3 Citation formatting consistency", ("sequential numbered style",), (), ("References",)),
-    Requirement("R1.m4 Nonstandard clustering metric", ("2/3 MIMIC-IV", "1/3 eICU-CRD", "2/3 AmsterdamUMCdb"), ("not a validated universal criterion", "does not establish k=3"), ("Table S1", "Table S15e", "Figure S2")),
-    Requirement("R1.m5 AmsterdamUMCdb hospital outcome limitation", ("unavailable in AmsterdamUMCdb",), ("restrict cross-cohort outcome interpretation",), ("Table 1",)),
+    Requirement("R1.4 Missing urine output and fluid balance", ("1,043 patients", "415 patients", "produced no PW component"), ("limits the stability",), ("Table S16", "Figures S11a-S11b")),
+    Requirement("R1.m1 Baseline creatinine clarification", ("was not imputed", "<0.5 or ≥1.5"), ("generalizability consequence",), ("Figure S1",)),
+    Requirement("R1.m2 Literature-search validity", ("9 August 2026", "2026 SA-AKI"), ("removed the unqualified first-ever novelty claim",), ("References 31-35",)),
+    Requirement("R1.m3 Citation formatting consistency", ("sequential Arabic numerals", "superscript square brackets", "after punctuation"), (), ("References",)),
+    Requirement("R1.m4 Nonstandard clustering metric", ("2/3 MIMIC-IV", "1/3 eICU-CRD", "2/3 AmsterdamUMCdb"), ("not a validated universal criterion", "establishes k=3 as a unique true taxonomy"), ("Table S1", "Tables S15c-S15e", "Figure S2")),
+    Requirement("R1.m5 AmsterdamUMCdb hospital outcome limitation", ("unavailable in AmsterdamUMCdb",), ("restricted to ICU and 28-day outcomes",), ("Table 1",)),
 )
 
 
@@ -114,9 +114,13 @@ def summarize_upstream_qa(
     supplement = w8_checks.get("supplement", {}) if isinstance(w8_checks, dict) else {}
     identities = supplement.get("figure_asset_identities", {}) if isinstance(supplement, dict) else {}
     if not identities and isinstance(supplement, dict):
-        legacy_identity = supplement.get("figure_s2_asset_identity")
-        if isinstance(legacy_identity, dict):
-            identities = {"figure_s2": legacy_identity}
+        identities = {
+            key.removesuffix("_asset_identity"): value
+            for key, value in supplement.items()
+            if key.startswith("figure_s")
+            and key.endswith("_asset_identity")
+            and isinstance(value, dict)
+        }
     exact_figures = sum(
         bool(value.get("exact_match"))
         for value in identities.values()
@@ -188,13 +192,23 @@ def main() -> int:
         word_result_ok, word_missing_results = contains_all(word_section, requirement.result_tokens)
         word_limitation_ok, word_missing_limitations = contains_all(word_section, requirement.limitation_tokens)
         word_evidence_ok, word_missing_evidence = contains_all(word_section, requirement.evidence_tokens)
-        response_position = word_section.find("Response:")
-        changes_position = word_section.find("Changes in the manuscript:")
+        response_match = re.search(r"(?m)^Response:?$", word_section)
+        changes_match = re.search(
+            r"(?m)^Changes in the manuscript(?: and supporting evidence)?:?$",
+            word_section,
+        )
+        response_position = response_match.start() if response_match else -1
+        changes_position = changes_match.start() if changes_match else -1
         structural = {
             "section_present": bool(section),
             "original_comment_present": "> " in section,
-            "response_present": "**Response:**" in section,
-            "changes_location_present": "**Changes in the manuscript:**" in section,
+            "response_present": bool(re.search(r"(?m)^\*\*Response:?\*\*$", section)),
+            "changes_location_present": bool(
+                re.search(
+                    r"(?m)^\*\*Changes in the manuscript(?: and supporting evidence)?:?\*\*$",
+                    section,
+                )
+            ),
             "word_section_present": bool(word_section),
             "word_original_comment_present": response_position > 0,
             "word_response_present": response_position >= 0,
@@ -256,7 +270,7 @@ def main() -> int:
     lines = [
         "# JTIM 终审：Editor 与 Reviewer 逐条核对",
         "",
-        "版本日期：2026-08-10",
+        "版本日期：2026-08-12",
         "",
         f"**自动核对状态：{status['overall_status']}（{status['comments_passed']}/{status['comments_expected']}）**",
         "",
@@ -296,7 +310,7 @@ def main() -> int:
             f"- W8 文档 QA：{upstream_qa['w8_table_s1_cells_passed']}/{upstream_qa['w8_table_s1_cells_total']} 个 Table S1 单元格与 source-of-truth 一致；{upstream_qa['w8_embedded_figures_passed']}/{upstream_qa['w8_embedded_figures_total']} 张修订图的 Word 内嵌资源与发布图一致。",
             f"- W9 数值一致性：{upstream_qa['w9_checks_passed']}/{upstream_qa['w9_checks_total']} 项通过，覆盖正文、标色稿、补充材料、回复信、关键表格和发布图。",
             f"- W10 逐条回复追踪：{status['comments_passed']}/{status['comments_expected']} 条 Editor/Reviewer 回复在 Markdown 与最终 Word 中均通过结果、限制和证据核验。",
-            f"- W11 图件 QA：{upstream_qa['w11_artifacts_passed']}/{upstream_qa['w11_artifacts_total']} 个导出文件通过；{upstream_qa['w11_visual_reviews_passed']}/{upstream_qa['w11_visual_reviews_total']} 张图通过人工视觉审核。",
+            f"- W11 图件 QA：{upstream_qa['w11_artifacts_passed']}/{upstream_qa['w11_artifacts_total']} 个导出文件通过；{upstream_qa['w11_visual_reviews_passed']}/{upstream_qa['w11_visual_reviews_total']} 张图的人工视觉审核与当前 PNG 哈希一致。",
             "",
         ]
     )

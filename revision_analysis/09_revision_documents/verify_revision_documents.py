@@ -21,7 +21,7 @@ REQUIRED_FILES = (
     "JTIM_Revised_Manuscript_highlight.docx",
     "JTIM_Revised_Supplementary_material.docx",
     "JTIM_Point-by-point_Response.docx",
-    "JTIM_逐点回复_中文工作版.docx",
+    "02_中文工作资料/JTIM_逐点回复_中文工作版.docx",
     "JTIM_Revised_Cover_Letter.docx",
     "JTIM_Revised_Highlights.docx",
     "JTIM_Revised_Title_Page.docx",
@@ -44,6 +44,36 @@ CONTENT_FILES = (
     "JTIM_Revised_Manuscript_highlight.docx",
     "JTIM_Point-by-point_Response.docx",
 )
+SUPPLEMENT_FIGURE_SOURCES = {
+    "figure_s2": (
+        "Figure S2.",
+        "W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.png",
+    ),
+    "figure_s10": (
+        "Figure S10.",
+        "W3_cross_cohort_robustness/cross_cohort_robustness_matrix.png",
+    ),
+    "figure_s11a": (
+        "Figure S11a.",
+        "W3_cluster_robustness/documented_windows_cluster_sensitivity.png",
+    ),
+    "figure_s11b": (
+        "Figure S11b.",
+        "W3_cluster_robustness/high_coverage_cluster_sensitivity.png",
+    ),
+    "figure_s12": (
+        "Figure S12.",
+        "W4_classifier_validation/Figure_S12_archived_model_calibration_comparator.png",
+    ),
+    "figure_s13": (
+        "Figure S13.",
+        "W5_independent_outcomes/W5_adjusted_outcomes_forest.png",
+    ),
+    "figure_s14": (
+        "Figure S14.",
+        "W6_diuretic_exploratory/W6_early_diuretic_response_forest.png",
+    ),
+}
 REQUIRED_CONTENT_PATTERNS: dict[str, tuple[str, ...]] = {
     "aumc_uses_three_clustering_variables": (
         r"(?:AmsterdamUMCdb|AUMC).{0,450}(?:other three (?:responses|variables)|three (?:renal )?(?:responses|variables))",
@@ -52,7 +82,7 @@ REQUIRED_CONTENT_PATTERNS: dict[str, tuple[str, ...]] = {
         r"eICU(?:-CRD)?.{0,260}initialization sensitivity",
     ),
     "high_coverage_uo_does_not_preserve_pw": (
-        r"(?:≥50%|50%-coverage).{0,500}(?:PW component collapsed|zero (?:median )?PW (?:prevalence|fraction)|PW (?:class|component).{0,60}collapse)",
+        r"(?:≥50%|50%-coverage).{0,800}(?:PW component collapsed|zero (?:median )?PW (?:prevalence|fraction)|(?:produced|yielded|contained|had) no PW (?:component|class)|absence of (?:the )?PW (?:component|class)|PW (?:class|component).{0,60}collapse)",
     ),
     "classifier_has_no_external_incremental_advantage": (
         r"(?:no external incremental (?:value|advantage)|did not improve.{0,140}externally)",
@@ -61,7 +91,7 @@ REQUIRED_CONTENT_PATTERNS: dict[str, tuple[str, ...]] = {
         r"diuretic.{0,450}(?:secondary.{0,80}exploratory|exploratory)",
     ),
     "complete_followup_and_missing_data_cautions": (
-        r"complete(?: 30-window)? follow-up.{0,280}(?:caution|sensitivity)",
+        r"(?:complete(?: 30-window)? follow-up|requiring all 30 planned windows).{0,360}(?:caution|sensitivity|non-representative|not representative|retains? only|selection)",
         r"(?:missing-data.{0,180}(?:sensitivity|rule|caution|refit)|sensitivity.{0,120}missing-data)",
     ),
     "k3_is_not_unanimous_or_uniquely_optimal": (
@@ -107,7 +137,19 @@ def parse_args() -> argparse.Namespace:
             / "02_revision_outputs/reports/W3_deep_k_stability/Figure_S2_cross_cohort_k_stability.png"
         ),
     )
+    parser.add_argument(
+        "--report-root",
+        type=Path,
+        default=analysis / "02_revision_outputs/reports",
+    )
     return parser.parse_args()
+
+
+def default_figure_sources(report_root: Path) -> dict[str, Path]:
+    return {
+        figure_id: report_root / relative_path
+        for figure_id, (_, relative_path) in SUPPLEMENT_FIGURE_SOURCES.items()
+    }
 
 
 def document_text(path: Path) -> str:
@@ -119,14 +161,26 @@ def document_text(path: Path) -> str:
 
 
 def author_response_text(path: Path) -> str:
-    """Return only author-response paragraphs, excluding quoted reviewer wording."""
+    """Return author-authored response paragraphs, excluding quoted comments and locations."""
     document = Document(path)
-    prefix = "Response: "
-    return "\n".join(
-        paragraph.text[len(prefix):]
-        for paragraph in document.paragraphs
-        if paragraph.text.startswith(prefix)
-    )
+    collected: list[str] = []
+    in_response = False
+    for paragraph in document.paragraphs:
+        text = paragraph.text.strip()
+        if text == "Response":
+            in_response = True
+            continue
+        if (
+            text in {
+                "Revised text in the manuscript",
+                "Changes in the manuscript and supporting evidence",
+            }
+            or paragraph.style.name.startswith("Heading")
+        ):
+            in_response = False
+        elif in_response and text:
+            collected.append(text)
+    return "\n".join(collected)
 
 
 def prohibited_claim_hits(text: str) -> list[str]:
@@ -302,6 +356,7 @@ def supplement_checks(
     path: Path,
     fresh_k_summary: Path | None = None,
     figure_s2_source: Path | None = None,
+    figure_sources: dict[str, Path] | None = None,
 ) -> dict[str, object]:
     document = Document(path)
     figure_s2_captions = [
@@ -365,10 +420,21 @@ def supplement_checks(
                 "exact_match": False,
                 "mismatch_count": None,
             }
+    resolved_sources = dict(figure_sources or {})
     if figure_s2_source is not None:
-        result["figure_s2_asset_identity"] = figure_asset_identity(
-            document, "Figure S2.", figure_s2_source
-        )
+        resolved_sources["figure_s2"] = figure_s2_source
+    if resolved_sources:
+        identities = {
+            figure_id: figure_asset_identity(
+                document,
+                SUPPLEMENT_FIGURE_SOURCES[figure_id][0],
+                source_path,
+            )
+            for figure_id, source_path in resolved_sources.items()
+        }
+        result["figure_asset_identities"] = identities
+        if "figure_s2" in identities:
+            result["figure_s2_asset_identity"] = identities["figure_s2"]
     return result
 
 
@@ -386,7 +452,10 @@ def main() -> int:
         supplement = supplement_checks(
             supplement_path,
             fresh_k_summary=args.fresh_k_summary,
-            figure_s2_source=args.figure_s2_source,
+            figure_sources={
+                **default_figure_sources(args.report_root),
+                "figure_s2": args.figure_s2_source,
+            },
         )
         checks["supplement"] = supplement
         if supplement["figure_s2_caption_count"] != 1:
@@ -403,8 +472,13 @@ def main() -> int:
             failures.append("Table S1 must not imply unanimous K=3 selection across cohorts")
         if not supplement.get("table_s1_source_identity", {}).get("exact_match", False):
             failures.append("Table S1 must match fresh_k_grid_summary.csv cell for cell")
-        if not supplement.get("figure_s2_asset_identity", {}).get("exact_match", False):
-            failures.append("Embedded Figure S2 must match the released Figure S2 asset")
+        figure_identities = supplement.get("figure_asset_identities", {})
+        for figure_id in SUPPLEMENT_FIGURE_SOURCES:
+            if not figure_identities.get(figure_id, {}).get("exact_match", False):
+                label = SUPPLEMENT_FIGURE_SOURCES[figure_id][0].rstrip(".")
+                failures.append(
+                    f"Embedded {label} must match the released source figure asset"
+                )
 
     wording_hits: dict[str, list[str]] = {}
     for name in WORDING_FILES:
@@ -439,6 +513,11 @@ def main() -> int:
     (args.output_dir / "revision_document_qa_status.json").write_text(
         json.dumps(status, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
+    embedded_identities = checks.get("supplement", {}).get("figure_asset_identities", {})
+    embedded_pass_count = sum(
+        identity.get("exact_match", False)
+        for identity in embedded_identities.values()
+    )
     report = f"""# Final revision document QA
 
 **Status: {status['overall_status']}**
@@ -448,7 +527,7 @@ def main() -> int:
 - Table S1 restricted to traceable K=2–5 across all three cohorts: {checks.get('supplement', {}).get('table_s1_has_only_k2_k5', False)}
 - Table S1 includes seed-level selection annotations and does not mark eICU K=3 as unanimous: {checks.get('supplement', {}).get('table_s1_selection_annotation_present', False) and checks.get('supplement', {}).get('table_s1_eicu_k3_not_unanimous', False)}
 - Table S1 matches the source CSV cell for cell: {checks.get('supplement', {}).get('table_s1_source_identity', {}).get('exact_match', False)}
-- Embedded Figure S2 matches the released asset: {checks.get('supplement', {}).get('figure_s2_asset_identity', {}).get('exact_match', False)}
+- Embedded revised figures matching released assets: {embedded_pass_count}/{len(SUPPLEMENT_FIGURE_SOURCES)}
 - Prohibited legacy claims detected: {sum(len(value) for value in wording_hits.values())}
 - Required scientific content checks passed: {all(all(values.values()) for values in required_content.values()) if required_content else False}
 
