@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "purpose": "Burn-in remediation experiment (W19). Single-factor change relative to mixak_canonical_config.json deep_refit: burn-in is increased from 50 to 20000 iterations. Cohorts, patients, windows, responses, seeds, retained sample count (keep=2000), thinning (thin=50), posterior-assignment rule and diagnostic thresholds are held identical so that any change in cluster stability is attributable to burn-in alone.",
+  "rationale": "The archived executable pipeline and every revision refit used burn=50 with keep=2000 and thin=50, i.e. a 50-iteration burn-in preceding 100000 sampled iterations. A 50-iteration burn-in cannot be assumed adequate for a Bayesian mixture GLMM, so retained draws may include the transient from the initialization point. This profile tests whether the reported initialization sensitivity, degenerate low-prevalence components and high lag-1 autocorrelation are sampler-convergence artifacts rather than properties of the data. The chosen burn-in of 20000 iterations also exceeds the 5000-iteration burn-in described in the originally submitted Supplementary Methods.",
+  "converged_refit": {
+    "candidate_k": [2, 3],
+    "chains": 1,
+    "burn": 20000,
+    "keep": 2000,
+    "thin": 50,
+    "info": 1000,
+    "seeds": [20260805, 20260806, 20260807],
+    "scope": "Deep multi-initialization re-estimation of K=2 versus K=3 and of every screening-depth CAUTION scenario under an adequate burn-in.",
+    "limitation": "Each seed remains an independent single-chain initialization. Convergence is assessed per chain with the Geweke z diagnostic and effective sample size, and across the three aligned initializations with a post-relabelling split-chain R-hat computed on component means. Every prespecified seed, including degenerate or poorly mixing fits, remains in the denominator."
+  },
+  "posterior_assignment": {
+    "probability_scaling": "none",
+    "primary_label": "component_with_largest_posterior_median",
+    "uncertain_label": 4,
+    "uncertainty_rule": "95% HPD lower bound for the selected component must exceed 0.5",
+    "hpd_probability": 0.95,
+    "hpd_lower_threshold": 0.5
+  },
+  "diagnostics": {
+    "lag": 1,
+    "absolute_autocorrelation_threshold": 0.85,
+    "maximum_fraction_above_threshold": 0.0,
+    "geweke_abs_z_threshold": 1.96,
+    "minimum_effective_sample_size": 100,
+    "minimum_cluster_prevalence": 0.03,
+    "exact_agreement_minimum": 0.75,
+    "ari_minimum": 0.5
+  }
+}

@@ -10,7 +10,7 @@ This repository preserves the historical public pipeline and adds the independen
 
 ## Associated manuscript
 
-**Revised working title:** “Reproducible Trajectory-Defined Subphenotypes of Sepsis-Associated Acute Kidney Injury Across Three International ICU Cohorts.”
+**Current manuscript title:** “Kidney-Function Trajectory Subphenotypes of Sepsis-Associated Acute Kidney Injury Under the ADQI 28 Definition: A Multicenter Cohort Study.”
 
 The manuscript is under revision at the *Journal of Translational Internal Medicine*. Bibliographic fields will be updated after a final editorial decision. Code in `revision_analysis/` should therefore be read as revision-stage analytical material, not as evidence of journal acceptance.
 
@@ -62,19 +62,20 @@ flowchart LR
 ├── configs/                  # Historical templates; not a methods contract
 ├── tests/                    # Unit tests for reusable components
 ├── revision_analysis/        # Data audit and revision-stage analyses
+├── original_pipeline/        # Original analysis notebooks cited in Supplementary Data 1 (outputs removed)
 ├── aggregate_results/        # Whitelisted identifier-free revision evidence
 ├── docs/                     # Public input contracts and provenance notes
 ├── pyproject.toml
 └── requirements.txt
 ```
 
-The legacy package was consolidated from the earlier public development repository, [shen-lab-icu/SAKI-Longitudinal-Subphenotyping](https://github.com/shen-lab-icu/SAKI-Longitudinal-Subphenotyping). It is intentionally left unchanged so its provenance remains inspectable. Known limitations and the corresponding revision replacements are listed in [Legacy baseline limitations](docs/LEGACY_BASELINE_LIMITATIONS.md).
+The legacy package was consolidated from the earlier public development repository, [shen-lab-icu/SAKI-Longitudinal-Subphenotyping](https://github.com/shen-lab-icu/SAKI-Longitudinal-Subphenotyping). It is intentionally left unchanged so its provenance remains inspectable; the revision analyses in `revision_analysis/` replace it where the two differ.
 
 ## Quick start
 
 ### Requirements
 
-- Python 3.10 or 3.11 (the archived AutoGluon dependency set is not compatible with newer Python versions)
+- Python 3.10 or 3.11 (the archived AutoGluon dependency set is not compatible with newer Python versions); the September 2026 classifier refits in `revision_analysis/06_classifier_validation/autogluon_2026092*` used Python 3.12 with AutoGluon 1.6.3
 - R with `mixAK` and `coda` for the clustering sensitivity analysis
 - authorized local access to the relevant ICU datasets for full reproduction
 
@@ -123,22 +124,31 @@ The published [aggregate revision evidence](aggregate_results/README.md) include
 | `train_model.py` | Train the retrospective phenotype classifier |
 | `compute_shap.py` | Calculate SHAP-based model explanations |
 
-The YAML files in `configs/` are historical templates, not the authoritative specification of the revised methods. In particular, they must not be used to infer the verified eICU urine-output aggregation rule. See the revision audit and [Legacy baseline limitations](docs/LEGACY_BASELINE_LIMITATIONS.md).
+The YAML files in `configs/` are historical templates, not the authoritative specification of the revised methods. In particular, they must not be used to infer the verified eICU urine-output aggregation rule. The revision scripts in `revision_analysis/` implement the verified rule.
 
 ## Revision analyses
 
 | Directory | Revision purpose | Review mapping |
 | --- | --- | --- |
 | `00_data_lineage/` | Lock the authoritative eICU cohort and detect mixed historical exports without releasing identifiers | Editor E.1 |
-| `01_data_audit/` | Trace Supplementary Table S3 from source matrix to workbook values | Editor E.1; Reviewer 1 major comment 3 |
+| `01_data_audit/` | Trace Supplementary Table S3 from source matrix to workbook values; rebuild the eICU discharge rows of Table 1; build the study variable list (Supplementary Data 1) | Editor E.1; Reviewer 1 major comment 3 |
 | `02_missingness_sensitivity/` | Audit cross-cohort inputs, rebuild the complete time grid, and create eICU urine-output scenarios | Editor E.2; Reviewer 1 major comment 4 |
-| `03_cluster_robustness/` | Audit traceable k candidates; run screening K=2–5 and deep K=2/K=3 multi-initialization experiments; rerun every CAUTION and urine-documentation scenario | Editor E.2; Reviewer 1 major comment 4 |
+| `03_cluster_robustness/` | Audit traceable k candidates; run screening K=2–5 and deep K=2/K=3 multi-initialization experiments; rerun every CAUTION and urine-documentation scenario; extended-sampling refits of the primary analysis and processing scenarios (Tables S15 and S17A) with the K=2 versus K=3 comparison | Editor E.2; Reviewer 1 major comment 4 |
 | `04_independent_outcomes/` | Estimate adjusted clinical outcome associations including onset nonrenal SOFA | Editor E.3 |
 | `05_diuretic_exploratory/` | Audit and restrict the post-exposure diuretic analysis | Editor E.4; Reviewer 1 major comment 1 |
-| `06_classifier_validation/` | Replay the archived model and compare discrimination, calibration, and incremental value with a simple model | Editor E.5; Reviewer 1 major comment 2 |
-| `07_tables_figures/` | Regenerate harmonized tables and publication figures; enforce figure export and visual-review contracts | Data-integrity and figure QA |
+| `06_classifier_validation/` | Replay the archived model; refit the first-24-hour classifier with harmonized units and evaluate six cumulative observation windows (Figure 5, Figures S7–S8, Tables S19–S20) | Editor E.5; Reviewer 1 major comment 2 |
+| `07_tables_figures/` | Regenerate harmonized tables and publication figures, including Table 1, Tables S3–S5 and Table S1/Figure S2; enforce figure export and visual-review contracts | Data-integrity and figure QA |
 | `08_literature_update/` | Archive reproducible PubMed searches used in the revision | Literature update |
 | `09_revision_documents/` | Fail-closed document, numerical-consistency, and reviewer-response traceability QA | Final submission QA |
+| `10_documentation_selection/` | Summarize urine-output documentation in eICU-CRD and the patients retained under documentation thresholds, supporting Table S15 (`build_table_s20.py` keeps its working name) | Editor E.2 |
+
+## September 2026 update
+
+- Added the code for the analyses in the current revision: extended-sampling refits and their audit (`03_cluster_robustness/`: `launch_w21.sh`, `run_mixak_converged_refit.R`, `audit_recovered_w21_20260908.py`, `k2_k3_crosstab_w21.py`), the classifier refits (`06_classifier_validation/autogluon_20260921/`, `autogluon_20260922_unit_refit/`), Table 1, Tables S1, S3–S5 and Figure S2 (`07_tables_figures/`, `01_data_audit/`), the urine-output documentation summaries (`10_documentation_selection/`) and the study variable list (`01_data_audit/build_variable_list_20260923_087.py`).
+- Server host names, user names and absolute paths were replaced by `~/` or by environment variables (`JTIM_SSH_HOST`, `JTIM_SSH_PORT`); the scripts are otherwise the versions that were run.
+- `original_pipeline/` contains the original analysis notebooks cited in Supplementary Data 1, which refers to cells by position. Outputs were removed and one patient identifier in a code comment was deleted. The notebooks ran on the authors' server against credentialed data and cannot run without it.
+- The field `mortality_28d` in the original pipeline records death within 30 days after SA-AKI onset; the manuscript reports it as 30-day mortality.
+- Internal audit and quality-control notes are kept in the private project; `aggregate_results/` retains summary tables, status files and figures.
 
 ## Data access and privacy
 
@@ -156,7 +166,7 @@ Do not commit credential files, local path configuration, patient identifiers, d
 - Revision scripts write reports, plots, and tabular results to a caller-controlled output directory.
 - `run_mixak_refit.R` preserves posterior probabilities on their native 0–1 scale; no division by two is applied.
 - Deep confirmation uses all prespecified starts (three cohorts × K=2/3 × three starts; six CAUTION scenarios × three starts; two eICU urine-documentation scenarios × three starts). Degenerate or poorly mixing results remain in the denominator.
-- Conventional pooled-chain R-hat is not reported for untreated mixture chains because label switching invalidates direct pooling; labels are aligned before cross-start agreement, ARI, and NMI are calculated.
+- Chains are not pooled without label alignment, because label switching invalidates direct pooling; split R-hat (Table S17A) is computed after aligning component labels across initializations, and labels are aligned before cross-start agreement, ARI, and NMI are calculated.
 - The ≥50% urine-output coverage scenario uses the fixed 30-window denominator, not the number of available rows.
 - Numeric mixture labels are aligned to archived phenotypes before agreement statistics are calculated.
 - Data-audit outputs distinguish source-data discrepancies from workbook-rendering discrepancies.
@@ -181,4 +191,4 @@ Please use the [GitHub issue tracker](https://github.com/HaibooZhu/SA-AKI-Longit
 
 ---
 
-_Last updated: 2026-08-09_
+_Last updated: 2026-09-27_
